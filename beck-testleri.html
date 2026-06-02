@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beck Ölçekleri — Depresyon ve Anksiyete Öz-Değerlendirme</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Newsreader:wght@400;500;600&family=Spline+Sans:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #f4f1ea;
+    --bg-card: #fffdf8;
+    --ink: #2b2926;
+    --ink-soft: #6b665d;
+    --ink-faint: #9b958a;
+    --line: #e3ddd0;
+    --line-soft: #ece7dc;
+    --accent: #3a6b5f;
+    --accent-soft: #e8f0ed;
+    --accent-line: #c3d8d1;
+
+    --c-min: #4a7c59;
+    --c-min-bg: #e9f1e9;
+    --c-mild: #4a6d8c;
+    --c-mild-bg: #e7eef4;
+    --c-mod: #b07a2e;
+    --c-mod-bg: #f6eddc;
+    --c-sev: #a8453a;
+    --c-sev-bg: #f5e4e1;
+
+    --radius: 14px;
+    --radius-sm: 9px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Spline Sans', -apple-system, sans-serif;
+    background: var(--bg);
+    background-image: radial-gradient(circle at 15% 10%, rgba(58,107,95,0.04), transparent 40%),
+                      radial-gradient(circle at 85% 90%, rgba(176,122,46,0.04), transparent 40%);
+    color: var(--ink);
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 0 16px 80px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap { max-width: 720px; margin: 0 auto; }
+
+  /* Header */
+  header {
+    padding: 56px 0 32px;
+    text-align: center;
+  }
+  .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: clamp(30px, 6vw, 44px);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+  }
+  .subtitle {
+    font-family: 'Newsreader', serif;
+    font-size: 17px;
+    color: var(--ink-soft);
+    max-width: 480px;
+    margin: 0 auto;
+    font-style: italic;
+  }
+
+  /* Privacy note */
+  .privacy {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
+    margin: 24px auto 0;
+    font-size: 13px;
+    color: var(--ink-faint);
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    padding: 8px 18px;
+    width: fit-content;
+  }
+  .privacy svg { flex-shrink: 0; }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 6px;
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    padding: 5px;
+    margin: 36px auto 0;
+    width: fit-content;
+    max-width: 100%;
+  }
+  .tab {
+    font-family: 'Spline Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    background: transparent;
+    border: none;
+    border-radius: 100px;
+    padding: 10px 22px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    white-space: nowrap;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab.active {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 2px 10px rgba(58,107,95,0.25);
+  }
+
+  /* Panel */
+  .panel { display: none; margin-top: 32px; }
+  .panel.active { display: block; animation: fade 0.4s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  .panel-head {
+    margin-bottom: 8px;
+  }
+  .panel-title {
+    font-family: 'Fraunces', serif;
+    font-size: 24px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  .panel-desc {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+    margin-bottom: 4px;
+  }
+  .scale-legend {
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    margin-bottom: 20px;
+  }
+  .scale-legend b { color: var(--ink-soft); font-weight: 600; }
+
+  /* Progress */
+  .progress-wrap {
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+    padding: 14px 0 12px;
+    z-index: 10;
+    margin-bottom: 8px;
+  }
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+  }
+  .progress-meta b { color: var(--ink); font-weight: 600; }
+  .progress-track {
+    height: 5px;
+    background: var(--line);
+    border-radius: 100px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    width: 0%;
+    border-radius: 100px;
+    transition: width 0.35s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* Question card */
+  .q {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .q.answered {
+    border-color: var(--accent-line);
+    box-shadow: 0 1px 0 var(--accent-line);
+  }
+  .q-head {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    margin-bottom: 14px;
+  }
+  .q-num {
+    font-family: 'Fraunces', serif;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+  .q-title {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  /* BDI options (vertical) */
+  .opts-v { display: flex; flex-direction: column; gap: 4px; }
+  .opt {
+    display: flex;
+    align-items: flex-start;
+    gap: 11px;
+    padding: 10px 12px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: background 0.15s;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+  }
+  .opt:hover { background: var(--line-soft); }
+  .opt.sel { background: var(--accent-soft); color: var(--ink); }
+  .opt-dot {
+    width: 17px; height: 17px;
+    border: 1.5px solid var(--ink-faint);
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 3px;
+    position: relative;
+    transition: border-color 0.15s;
+  }
+  .opt.sel .opt-dot { border-color: var(--accent); }
+  .opt.sel .opt-dot::after {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+
+  /* BAI options (horizontal grid) */
+  .opts-h { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
+  .opt-box {
+    border: 1px solid var(--line);
+    background: transparent;
+    border-radius: var(--radius-sm);
+    padding: 9px 4px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .opt-box:hover { border-color: var(--accent-line); background: var(--line-soft); }
+  .opt-box.sel { background: var(--accent-soft); border-color: var(--accent); }
+  .opt-box .num {
+    font-family: 'Fraunces', serif;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    display: block;
+  }
+  .opt-box.sel .num { color: var(--accent); }
+  .opt-box .lbl {
+    font-size: 11px;
+    color: var(--ink-faint);
+    margin-top: 1px;
+    display: block;
+  }
+  .opt-box.sel .lbl { color: var(--accent); }
+
+  /* Actions */
+  .actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 24px;
+  }
+  .btn {
+    font-family: 'Spline Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    border-radius: 100px;
+    padding: 13px 24px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+  }
+  .btn-primary {
+    flex: 1;
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn-primary:hover:not(:disabled) { background: #2f574d; box-shadow: 0 4px 14px rgba(58,107,95,0.3); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-ghost {
+    background: transparent;
+    color: var(--ink-soft);
+    border: 1px solid var(--line);
+  }
+  .btn-ghost:hover { border-color: var(--ink-faint); color: var(--ink); }
+
+  /* Result */
+  .result { margin-top: 22px; display: none; }
+  .result.show { display: block; animation: fade 0.45s ease; }
+  .result-card {
+    border-radius: var(--radius);
+    padding: 28px;
+    text-align: center;
+    border: 1px solid;
+  }
+  .result-label { font-size: 13px; opacity: 0.85; }
+  .result-score {
+    font-family: 'Fraunces', serif;
+    font-size: 52px;
+    font-weight: 500;
+    line-height: 1.1;
+    margin: 4px 0;
+  }
+  .result-max { font-size: 13px; opacity: 0.7; }
+  .result-level {
+    font-size: 17px;
+    font-weight: 600;
+    margin-top: 10px;
+  }
+  .result-bar {
+    height: 8px;
+    background: rgba(0,0,0,0.08);
+    border-radius: 100px;
+    margin: 20px 0 8px;
+    overflow: hidden;
+    position: relative;
+  }
+  .result-bar-fill { height: 100%; border-radius: 100px; transition: width 0.6s ease; }
+  .result-ranges {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10.5px;
+    opacity: 0.65;
+  }
+  .lvl-min { color: var(--c-min); }
+  .lvl-min .result-card { background: var(--c-min-bg); border-color: var(--c-min); color: var(--c-min); }
+  .lvl-min .result-bar-fill { background: var(--c-min); }
+  .lvl-mild { color: var(--c-mild); }
+  .lvl-mild .result-card { background: var(--c-mild-bg); border-color: var(--c-mild); color: var(--c-mild); }
+  .lvl-mild .result-bar-fill { background: var(--c-mild); }
+  .lvl-mod { color: var(--c-mod); }
+  .lvl-mod .result-card { background: var(--c-mod-bg); border-color: var(--c-mod); color: var(--c-mod); }
+  .lvl-mod .result-bar-fill { background: var(--c-mod); }
+  .lvl-sev { color: var(--c-sev); }
+  .lvl-sev .result-card { background: var(--c-sev-bg); border-color: var(--c-sev); color: var(--c-sev); }
+  .lvl-sev .result-bar-fill { background: var(--c-sev); }
+
+  .alert {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    background: var(--c-sev-bg);
+    border: 1px solid var(--c-sev);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    margin-top: 12px;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--c-sev);
+    text-align: left;
+  }
+  .alert svg { flex-shrink: 0; margin-top: 2px; }
+
+  .disclaimer {
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    text-align: center;
+    margin-top: 14px;
+    line-height: 1.6;
+  }
+
+  /* Footer */
+  footer {
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--ink-faint);
+    text-align: center;
+    line-height: 1.7;
+  }
+  footer b { color: var(--ink-soft); font-weight: 600; }
+
+  @media (max-width: 480px) {
+    .tab { padding: 10px 16px; font-size: 13px; }
+    .q { padding: 16px; }
+    .result-card { padding: 22px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Öz-Değerlendirme Ölçekleri</div>
+    <h1>Beck Depresyon &amp; Anksiyete Envanterleri</h1>
+    <p class="subtitle">Son dönemdeki ruh halini ve bedensel belirtilerini gözlemlemek için iki klinik tarama ölçeği.</p>
+    <div class="privacy">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Tüm veriler yalnızca bu cihazda kalır — hiçbir şey internete gönderilmez.
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="bdi">Depresyon (BDI)</button>
+    <button class="tab" data-tab="bai">Anksiyete (BAI)</button>
+  </div>
+
+  <!-- BDI PANEL -->
+  <section class="panel active" id="panel-bdi">
+    <div class="panel-head">
+      <div class="panel-title">Beck Depresyon Envanteri</div>
+      <div class="panel-desc">21 madde · Son <b>2 haftayı</b> (bugün dahil) düşünerek her grupta sana en uygun ifadeyi seç.</div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-meta"><span>İlerleme</span><span><b id="bdi-count">0</b> / 21</span></div>
+      <div class="progress-track"><div class="progress-fill" id="bdi-fill"></div></div>
+    </div>
+    <div id="bdi-questions"></div>
+    <div class="result" id="bdi-result"></div>
+    <div class="actions">
+      <button class="btn btn-primary" id="bdi-submit" disabled>Sonucu göster</button>
+      <button class="btn btn-ghost" id="bdi-reset">Sıfırla</button>
+    </div>
+  </section>
+
+  <!-- BAI PANEL -->
+  <section class="panel" id="panel-bai">
+    <div class="panel-head">
+      <div class="panel-title">Beck Anksiyete Envanteri</div>
+      <div class="panel-desc">21 belirti · Son <b>1 hafta</b> içinde her belirtinin seni ne kadar rahatsız ettiğini işaretle.</div>
+      <div class="scale-legend"><b>0</b> Hiç &nbsp;·&nbsp; <b>1</b> Hafif &nbsp;·&nbsp; <b>2</b> Orta &nbsp;·&nbsp; <b>3</b> Ciddi</div>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-meta"><span>İlerleme</span><span><b id="bai-count">0</b> / 21</span></div>
+      <div class="progress-track"><div class="progress-fill" id="bai-fill"></div></div>
+    </div>
+    <div id="bai-questions"></div>
+    <div class="result" id="bai-result"></div>
+    <div class="actions">
+      <button class="btn btn-primary" id="bai-submit" disabled>Sonucu göster</button>
+      <button class="btn btn-ghost" id="bai-reset">Sıfırla</button>
+    </div>
+  </section>
+
+  <footer>
+    Bu ölçekler <b>tanı koymaz</b>; yalnızca bir tarama ve gözlem aracıdır. Sonuçların ne çıkarsa çıksın, değerlendirme ve tedavi kararı bir ruh sağlığı uzmanına aittir.<br>
+    Kaynak: Beck Depresyon Envanteri (BDI-II) ve Beck Anksiyete Envanteri (BAI), Türkçe geçerlik çalışmaları.<br>
+    Acil destek: <b>182</b> (Sağlık Bakanlığı) · <b>112</b> (Acil)
+  </footer>
+</div>
+
+<script>
+// ---------- DATA ----------
+const bdiQuestions = [
+  { title: "Üzüntü", options: ["Kendimi üzgün hissetmiyorum.","Kendimi üzgün hissediyorum.","Her zaman üzgünüm ve bundan kurtulamıyorum.","O kadar üzgün ve mutsuzum ki dayanamıyorum."] },
+  { title: "Karamsarlık", options: ["Gelecek hakkında karamsar değilim.","Gelecek hakkında karamsarım.","Gelecekten beklediğim hiçbir şey yok.","Geleceğim umutsuz ve hiçbir şey düzelmeyecek."] },
+  { title: "Başarısızlık duygusu", options: ["Kendimi başarısız biri olarak görmüyorum.","Çevremdeki birçok kişiden daha fazla başarısızlıklarım oldu.","Geçmişe baktığımda birçok başarısızlığımın olduğunu görüyorum.","Kendimi tümüyle başarısız biri olarak görüyorum."] },
+  { title: "Zevk alamama", options: ["Eskiden olduğu gibi her şeyden hoşlanıyorum.","Eskiden olduğu gibi her şeyden hoşlanmıyorum.","Artık hiçbir şey bana tam anlamıyla zevk vermiyor.","Eskiden zevk aldığım her şeyden tamamen sıkılıyorum."] },
+  { title: "Suçluluk", options: ["Kendimi herhangi bir şekilde suçlu hissetmiyorum.","Kendimi zaman zaman suçlu hissediyorum.","Çoğu zaman kendimi suçlu hissediyorum.","Kendimi her zaman suçlu hissediyorum."] },
+  { title: "Cezalandırılma duygusu", options: ["Cezalandırıldığımı hissetmiyorum.","Cezalandırılabileceğimi hissediyorum.","Cezalandırılmayı bekliyorum.","Cezalandırıldığımı hissediyorum."] },
+  { title: "Kendinden hoşnutsuzluk", options: ["Kendimden memnunum.","Kendimden memnun değilim.","Kendime kızgınım.","Kendimden nefret ediyorum."] },
+  { title: "Kendini suçlama", options: ["Başkalarından daha kötü olduğumu sanmıyorum.","Zayıf yanlarım veya hatalarım için kendimi eleştiririm.","Hatalarımdan dolayı her zaman kendimi suçlarım.","Olan her kötü şey için kendimi suçlarım."] },
+  { title: "İntihar düşünceleri", options: ["Kendimi öldürmek gibi düşüncelerim yok.","Zaman zaman kendimi öldürmeyi düşünüyorum, ama yapmıyorum.","Kendimi öldürmek isterdim.","Fırsat bulsam kendimi öldürürdüm."] },
+  { title: "Ağlama", options: ["Her zamankinden daha fazla ağladığımı sanmıyorum.","Eskisine göre şu sıralarda daha fazla ağlıyorum.","Şimdi her zaman ağlıyorum.","Önceleri ağlayabilirdim, şimdi istesem de ağlayamıyorum."] },
+  { title: "Sinirlilik", options: ["Şimdi her zaman olduğumdan daha sinirli değilim.","Eskisine göre daha kolay kızıyor veya sinirleniyorum.","Şimdi hep sinirliyim.","Bir zamanlar beni sinirlendiren şeyler şimdi beni hiç sinirlendirmiyor."] },
+  { title: "Sosyal ilgi kaybı", options: ["Başkaları ile ilgilenmekten vazgeçmedim.","Eskisine göre insanlarla daha az ilgileniyorum.","Başkaları ile ilgimi büyük ölçüde kaybettim.","Başkaları ile hiç ilgilenmiyorum."] },
+  { title: "Karar verememe", options: ["Eskisi gibi rahat ve kolay kararlar verebiliyorum.","Eskisine kıyasla şu sıralar karar vermeyi geciktiriyorum.","Eskisine kıyasla karar vermekte oldukça güçlük çekiyorum.","Artık hiç karar veremiyorum."] },
+  { title: "Görünüş", options: ["Aynada kendime baktığımda bir değişiklik görmüyorum.","Daha yaşlanmış ve çirkinleşmişim gibi geliyor.","Görünüşümün çok değiştiğini ve daha çirkinleştiğimi hissediyorum.","Kendimi çok çirkin buluyorum."] },
+  { title: "İş kaybı", options: ["Eskisi kadar iyi çalışabiliyorum.","Bir işe başlamak için eskisine göre kendimi daha fazla zorlamam gerekiyor.","Hangi iş olursa olsun, yapabilmek için kendimi çok zorluyorum.","Hiçbir iş yapamıyorum."] },
+  { title: "Uyku bozukluğu", options: ["Her zamanki gibi iyi uyuyabiliyorum.","Eskisi kadar iyi uyuyamıyorum.","Her zamankinden 1-2 saat daha erken uyanıyorum ve tekrar uyumakta zorluk çekiyorum.","Her zamankinden çok daha erken uyanıyorum ve tekrar uyuyamıyorum."] },
+  { title: "Yorgunluk", options: ["Her zamankinden daha çabuk yorulmuyorum.","Her zamankinden daha çabuk yoruluyorum.","Yaptığım hemen her şey beni yoruyor.","Kendimi hiçbir şey yapamayacak kadar yorgun hissediyorum."] },
+  { title: "İştahsızlık", options: ["İştahım her zamanki gibi.","İştahım eskisi kadar iyi değil.","İştahım çok azaldı.","Artık hiç iştahım yok."] },
+  { title: "Kilo kaybı", options: ["Son zamanlarda kilo vermedim.","İki kilodan fazla kilo verdim.","Dört kilodan fazla kilo verdim.","Altı kilodan fazla kilo verdim."] },
+  { title: "Sağlık kaygısı", options: ["Sağlığım beni fazla endişelendirmiyor.","Ağrı, sancı, mide bozukluğu veya kabızlık gibi rahatsızlıklar beni endişelendiriyor.","Sağlığım beni endişelendirdiği için başka şeyleri düşünmek zorlaşıyor.","Sağlığım hakkında o kadar endişeliyim ki başka hiçbir şey düşünemiyorum."] },
+  { title: "Cinsel ilgi kaybı", options: ["Son zamanlarda cinsel konulara olan ilgimde bir değişiklik fark etmedim.","Eskisine göre cinsel konularla daha az ilgileniyorum.","Cinsel konulara şimdi çok daha az ilgi duyuyorum.","Cinsel konulara olan ilgimi tamamen kaybettim."] }
+];
+
+const baiSymptoms = [
+  "Bedeninizin herhangi bir yerinde uyuşma veya karıncalanma",
+  "Sıcak basmaları",
+  "Bacaklarda halsizlik, titreme",
+  "Gevşeyememe",
+  "Çok kötü şeyler olacak korkusu",
+  "Baş dönmesi veya sersemlik",
+  "Kalp çarpıntısı",
+  "Dengeyi kaybetme duygusu",
+  "Dehşete kapılma",
+  "Sinirlilik",
+  "Boğuluyormuş gibi olma duygusu",
+  "Ellerde titreme",
+  "Titreklik",
+  "Kontrolü kaybetme korkusu",
+  "Nefes almada güçlük",
+  "Ölüm korkusu",
+  "Korkuya kapılma",
+  "Midede hazımsızlık ya da rahatsızlık hissi",
+  "Baygınlık",
+  "Yüzün kızarması",
+  "Terleme (sıcaklığa bağlı olmayan)"
+];
+const baiLabels = ["Hiç","Hafif","Orta","Ciddi"];
+
+// ---------- STATE ----------
+const bdiAnswers = new Array(bdiQuestions.length).fill(null);
+const baiAnswers = new Array(baiSymptoms.length).fill(null);
+
+// ---------- TABS ----------
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    document.getElementById('panel-' + tab.dataset.tab).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+});
+
+// ---------- BUILD BDI ----------
+const bdiContainer = document.getElementById('bdi-questions');
+bdiQuestions.forEach((q, qi) => {
+  const card = document.createElement('div');
+  card.className = 'q';
+  card.id = 'bdi-q' + qi;
+  const head = document.createElement('div');
+  head.className = 'q-head';
+  head.innerHTML = `<span class="q-num">${qi+1}</span><span class="q-title">${q.title}</span>`;
+  card.appendChild(head);
+  const opts = document.createElement('div');
+  opts.className = 'opts-v';
+  q.options.forEach((opt, oi) => {
+    const o = document.createElement('div');
+    o.className = 'opt';
+    o.innerHTML = `<span class="opt-dot"></span><span>${opt}</span>`;
+    o.addEventListener('click', () => {
+      bdiAnswers[qi] = oi;
+      opts.querySelectorAll('.opt').forEach(x => x.classList.remove('sel'));
+      o.classList.add('sel');
+      card.classList.add('answered');
+      updateBdi();
+    });
+    opts.appendChild(o);
+  });
+  card.appendChild(opts);
+  bdiContainer.appendChild(card);
+});
+
+// ---------- BUILD BAI ----------
+const baiContainer = document.getElementById('bai-questions');
+baiSymptoms.forEach((sym, qi) => {
+  const card = document.createElement('div');
+  card.className = 'q';
+  card.id = 'bai-q' + qi;
+  const head = document.createElement('div');
+  head.className = 'q-head';
+  head.innerHTML = `<span class="q-num">${qi+1}</span><span class="q-title">${sym}</span>`;
+  card.appendChild(head);
+  const opts = document.createElement('div');
+  opts.className = 'opts-h';
+  baiLabels.forEach((lbl, oi) => {
+    const b = document.createElement('button');
+    b.className = 'opt-box';
+    b.innerHTML = `<span class="num">${oi}</span><span class="lbl">${lbl}</span>`;
+    b.addEventListener('click', () => {
+      baiAnswers[qi] = oi;
+      opts.querySelectorAll('.opt-box').forEach(x => x.classList.remove('sel'));
+      b.classList.add('sel');
+      card.classList.add('answered');
+      updateBai();
+    });
+    opts.appendChild(b);
+  });
+  card.appendChild(opts);
+  baiContainer.appendChild(card);
+});
+
+// ---------- PROGRESS ----------
+function updateBdi() {
+  const n = bdiAnswers.filter(a => a !== null).length;
+  document.getElementById('bdi-count').textContent = n;
+  document.getElementById('bdi-fill').style.width = (n/bdiQuestions.length*100) + '%';
+  document.getElementById('bdi-submit').disabled = n !== bdiQuestions.length;
+}
+function updateBai() {
+  const n = baiAnswers.filter(a => a !== null).length;
+  document.getElementById('bai-count').textContent = n;
+  document.getElementById('bai-fill').style.width = (n/baiSymptoms.length*100) + '%';
+  document.getElementById('bai-submit').disabled = n !== baiSymptoms.length;
+}
+
+// ---------- LEVELS ----------
+function bdiLevel(t) {
+  if (t <= 13) return { name:'Minimal düzey', cls:'lvl-min' };
+  if (t <= 19) return { name:'Hafif düzey', cls:'lvl-mild' };
+  if (t <= 28) return { name:'Orta düzey', cls:'lvl-mod' };
+  return { name:'Şiddetli düzey', cls:'lvl-sev' };
+}
+function baiLevel(t) {
+  if (t <= 7) return { name:'Minimal düzey', cls:'lvl-min' };
+  if (t <= 15) return { name:'Hafif düzey', cls:'lvl-mild' };
+  if (t <= 25) return { name:'Orta düzey', cls:'lvl-mod' };
+  return { name:'Şiddetli düzey', cls:'lvl-sev' };
+}
+
+const alertSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+
+function renderResult(elId, total, lvl, extraHtml) {
+  const el = document.getElementById(elId);
+  el.className = 'result show ' + lvl.cls;
+  el.innerHTML = `
+    <div class="result-card">
+      <div class="result-label">Toplam puanın</div>
+      <div class="result-score">${total}</div>
+      <div class="result-max">63 üzerinden</div>
+      <div class="result-level">${lvl.name}</div>
+      <div class="result-bar"><div class="result-bar-fill" style="width:0%"></div></div>
+      <div class="result-ranges"><span>0</span><span>21</span><span>42</span><span>63</span></div>
+    </div>
+    ${extraHtml || ''}
+    <div class="disclaimer">Bu sonuç tanı değildir, yalnızca bir göstergedir. Doktorunla paylaşman önerilir.</div>
+  `;
+  setTimeout(() => {
+    el.querySelector('.result-bar-fill').style.width = Math.min(total/63*100,100) + '%';
+  }, 50);
+  el.scrollIntoView({ behavior:'smooth', block:'center' });
+}
+
+// ---------- SUBMIT ----------
+document.getElementById('bdi-submit').addEventListener('click', () => {
+  const total = bdiAnswers.reduce((s,a) => s+a, 0);
+  const lvl = bdiLevel(total);
+  let extra = '';
+  if (bdiAnswers[8] >= 1) {
+    extra = `<div class="alert">${alertSvg}<div>9. maddede kendine zarar verme ile ilgili düşünceler işaretledin. Bu önemli bir sinyal — lütfen en kısa sürede bir ruh sağlığı uzmanıyla konuş. Acil destek için <b>182</b> ya da <b>112</b>'yi arayabilirsin.</div></div>`;
+  }
+  renderResult('bdi-result', total, lvl, extra);
+});
+document.getElementById('bai-submit').addEventListener('click', () => {
+  const total = baiAnswers.reduce((s,a) => s+a, 0);
+  renderResult('bai-result', total, baiLevel(total));
+});
+
+// ---------- RESET ----------
+document.getElementById('bdi-reset').addEventListener('click', () => {
+  bdiAnswers.fill(null);
+  document.querySelectorAll('#bdi-questions .opt').forEach(o => o.classList.remove('sel'));
+  document.querySelectorAll('#bdi-questions .q').forEach(q => q.classList.remove('answered'));
+  document.getElementById('bdi-result').className = 'result';
+  updateBdi();
+  window.scrollTo({ top:0, behavior:'smooth' });
+});
+document.getElementById('bai-reset').addEventListener('click', () => {
+  baiAnswers.fill(null);
+  document.querySelectorAll('#bai-questions .opt-box').forEach(o => o.classList.remove('sel'));
+  document.querySelectorAll('#bai-questions .q').forEach(q => q.classList.remove('answered'));
+  document.getElementById('bai-result').className = 'result';
+  updateBai();
+  window.scrollTo({ top:0, behavior:'smooth' });
+});
+</script>
+</body>
+</html>

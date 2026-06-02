@@ -1,0 +1,922 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zeka Testi</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f1ea;
+    --ink: #1a1a1a;
+    --paper: #ffffff;
+    --accent: #c2410c;
+    --accent-soft: #fed7aa;
+    --muted: #78716c;
+    --line: #d6d3d1;
+    --correct: #166534;
+    --wrong: #991b1b;
+    --shadow: 0 1px 0 rgba(0,0,0,0.04), 0 8px 24px -8px rgba(0,0,0,0.12);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Fraunces', Georgia, serif;
+    min-height: 100vh;
+    line-height: 1.5;
+  }
+  body {
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(194,65,12,0.04) 0%, transparent 40%),
+      radial-gradient(circle at 80% 90%, rgba(22,101,52,0.04) 0%, transparent 40%);
+    padding: 32px 16px 64px;
+  }
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+  }
+  header.brand {
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 16px;
+    margin-bottom: 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .brand h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 800;
+    font-size: clamp(28px, 5vw, 44px);
+    letter-spacing: -0.02em;
+    font-style: italic;
+  }
+  .brand .meta {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+  }
+
+  /* Cards */
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: 32px;
+    box-shadow: var(--shadow);
+    position: relative;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: -1px;
+    width: 32px; height: 32px;
+    border-top: 2px solid var(--accent);
+    border-left: 2px solid var(--accent);
+  }
+
+  /* Start screen */
+  #start h2 {
+    font-size: 22px;
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+  #start p {
+    color: var(--muted);
+    margin-bottom: 8px;
+    font-size: 16px;
+  }
+  .rules {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    background: var(--bg);
+    padding: 16px;
+    margin: 20px 0;
+    border-left: 3px solid var(--accent);
+  }
+  .rules li {
+    list-style: none;
+    padding: 4px 0;
+    color: var(--ink);
+  }
+  .rules li::before {
+    content: '→ ';
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .disclaimer {
+    font-size: 13px;
+    color: var(--muted);
+    font-style: italic;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--line);
+  }
+
+  /* Buttons */
+  button {
+    font-family: 'JetBrains Mono', monospace;
+    cursor: pointer;
+    border: none;
+    background: none;
+  }
+  .btn-primary {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 14px 28px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    transition: transform 0.15s, background 0.15s;
+    margin-top: 8px;
+  }
+  .btn-primary:hover {
+    background: var(--accent);
+    transform: translateY(-1px);
+  }
+  .btn-secondary {
+    background: transparent;
+    color: var(--ink);
+    border: 1px solid var(--ink);
+    padding: 10px 20px;
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .btn-secondary:hover { background: var(--ink); color: var(--paper); }
+
+  /* Quiz */
+  .progress-bar {
+    height: 4px;
+    background: var(--line);
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    transition: width 0.4s ease;
+  }
+  .q-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  .q-type {
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 4px 10px;
+    font-weight: 600;
+  }
+  .timer { font-weight: 600; color: var(--ink); }
+  .timer.warn { color: var(--accent); }
+
+  .question-text {
+    font-size: clamp(20px, 3vw, 26px);
+    line-height: 1.4;
+    margin-bottom: 8px;
+    font-weight: 600;
+  }
+  .question-sub {
+    color: var(--muted);
+    font-size: 15px;
+    margin-bottom: 24px;
+    font-style: italic;
+  }
+
+  /* Sequence display */
+  .sequence {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: clamp(22px, 4vw, 32px);
+    text-align: center;
+    padding: 24px;
+    background: var(--bg);
+    margin: 24px 0;
+    letter-spacing: 0.1em;
+    font-weight: 600;
+  }
+  .sequence .blank {
+    color: var(--accent);
+    border-bottom: 2px solid var(--accent);
+  }
+
+  /* Visual SVG block */
+  .visual-block {
+    display: flex;
+    justify-content: center;
+    padding: 24px;
+    background: var(--bg);
+    margin: 24px 0;
+  }
+  .visual-block svg { max-width: 100%; height: auto; }
+
+  /* Options */
+  .options {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .options.four { grid-template-columns: repeat(2, 1fr); }
+  .options.visual { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 560px) {
+    .options.visual { grid-template-columns: repeat(2, 1fr); }
+  }
+  .opt {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    padding: 16px;
+    text-align: left;
+    font-size: 17px;
+    font-family: 'Fraunces', serif;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 64px;
+  }
+  .opt .letter {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    background: var(--bg);
+    color: var(--muted);
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-weight: 600;
+  }
+  .opt:hover {
+    border-color: var(--ink);
+    transform: translateY(-1px);
+  }
+  .opt.selected {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .opt.selected .letter { background: var(--accent); color: white; }
+  .opt.correct {
+    border-color: var(--correct);
+    background: #dcfce7;
+  }
+  .opt.wrong {
+    border-color: var(--wrong);
+    background: #fee2e2;
+  }
+  .opt:disabled { cursor: default; }
+
+  .opt-visual {
+    justify-content: center;
+    padding: 12px;
+    min-height: 88px;
+  }
+  .opt-visual svg { max-width: 100%; max-height: 64px; }
+
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid var(--line);
+  }
+
+  /* Result */
+  .score-display {
+    text-align: center;
+    padding: 24px 0;
+  }
+  .score-display .iq {
+    font-size: clamp(72px, 14vw, 120px);
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 800;
+    color: var(--accent);
+    line-height: 1;
+    letter-spacing: -0.04em;
+  }
+  .score-display .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+  .score-display .category {
+    font-size: 20px;
+    margin-top: 16px;
+    font-weight: 600;
+  }
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 24px 0;
+    padding: 20px;
+    background: var(--bg);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .stat {
+    text-align: center;
+  }
+  .stat .num {
+    font-size: 28px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .stat .lbl {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .review {
+    margin-top: 24px;
+  }
+  .review h3 {
+    font-size: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    margin-bottom: 12px;
+  }
+  .review-item {
+    padding: 12px 0;
+    border-bottom: 1px dashed var(--line);
+    display: flex;
+    gap: 12px;
+    font-size: 14px;
+  }
+  .review-item .mark {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    flex-shrink: 0;
+    width: 20px;
+  }
+  .review-item .mark.ok { color: var(--correct); }
+  .review-item .mark.no { color: var(--wrong); }
+  .review-item .qtext { flex: 1; color: var(--muted); }
+  .review-item .ans { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="brand">
+    <h1>Zeka Testi</h1>
+    <div class="meta">v1.0 / programatik</div>
+  </header>
+
+  <!-- START SCREEN -->
+  <div class="card" id="start">
+    <h2>Test Hakkında</h2>
+    <p>Bu test sözel, sayısal ve görsel mantık sorularını karışık olarak içerir. Sorular her seferinde rastgele üretilir.</p>
+    <ul class="rules">
+      <li>15 soru, toplam 12 dakika süre</li>
+      <li>Her soruda 4 seçenekten birini işaretle</li>
+      <li>Geri dönüp cevap değiştirebilirsin</li>
+      <li>Sonuçta tahmini bir puan ve detaylı inceleme görürsün</li>
+    </ul>
+    <p class="disclaimer">Bu eğlence amaçlı bir testtir. Klinik veya akademik bir IQ ölçümü değildir. Gerçek IQ testleri (WAIS, Raven) standardize edilmiş ve profesyoneller tarafından uygulanır.</p>
+    <button class="btn-primary" onclick="startTest()">Testi Başlat →</button>
+  </div>
+
+  <!-- QUIZ SCREEN -->
+  <div class="card hidden" id="quiz">
+    <div class="progress-bar"><div class="progress-fill" id="progress"></div></div>
+    <div class="q-header">
+      <span><span id="qNum">1</span> / <span id="qTotal">15</span> · <span class="q-type" id="qType">SÖZEL</span></span>
+      <span class="timer" id="timer">12:00</span>
+    </div>
+    <div class="question-text" id="qText"></div>
+    <div class="question-sub" id="qSub"></div>
+    <div id="qBody"></div>
+    <div class="options" id="options"></div>
+    <div class="controls">
+      <button class="btn-secondary" id="prevBtn" onclick="prevQ()">← Önceki</button>
+      <button class="btn-secondary" id="nextBtn" onclick="nextQ()">Sonraki →</button>
+    </div>
+  </div>
+
+  <!-- RESULT SCREEN -->
+  <div class="card hidden" id="result">
+    <div class="score-display">
+      <div class="iq" id="iqScore">—</div>
+      <div class="label">Tahmini Puan</div>
+      <div class="category" id="iqCategory"></div>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="num" id="rCorrect">0</div><div class="lbl">Doğru</div></div>
+      <div class="stat"><div class="num" id="rWrong">0</div><div class="lbl">Yanlış</div></div>
+      <div class="stat"><div class="num" id="rTime">0:00</div><div class="lbl">Süre</div></div>
+    </div>
+    <div class="review">
+      <h3>Soru İncelemesi</h3>
+      <div id="reviewList"></div>
+    </div>
+    <div class="controls">
+      <button class="btn-primary" onclick="location.reload()">Tekrar Dene</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// UTILS
+// ============================================================
+const rand = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+const pick = arr => arr[Math.floor(Math.random() * arr.length)];
+const shuffle = arr => {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
+
+// Create options object from correct value + distractors
+const makeOptions = (correct, distractors) => {
+  const all = shuffle([correct, ...distractors]);
+  return { options: all, correctIndex: all.indexOf(correct) };
+};
+
+// ============================================================
+// QUESTION GENERATORS
+// ============================================================
+
+// --- SAYISAL: Aritmetik dizi (Fibonacci, kare, üçgen, vs.) ---
+function genNumberSequence() {
+  const patterns = [
+    // Aritmetik: a, a+d, a+2d...
+    () => {
+      const a = rand(2, 10), d = rand(2, 8);
+      const seq = [a, a+d, a+2*d, a+3*d];
+      return { seq, next: a + 4*d, hint: 'Aritmetik dizi' };
+    },
+    // Geometrik: a, ar, ar²...
+    () => {
+      const a = rand(2, 5), r = rand(2, 3);
+      const seq = [a, a*r, a*r*r, a*r*r*r];
+      return { seq, next: a*r*r*r*r, hint: 'Geometrik dizi' };
+    },
+    // Kareler
+    () => {
+      const start = rand(2, 5);
+      const seq = [start*start, (start+1)**2, (start+2)**2, (start+3)**2];
+      return { seq, next: (start+4)**2, hint: 'Karelerin dizisi' };
+    },
+    // Fibonacci benzeri
+    () => {
+      const a = rand(1, 4), b = rand(2, 6);
+      const seq = [a, b, a+b, a+2*b, 2*a+3*b];
+      return { seq, next: 3*a+5*b, hint: 'Toplama dizisi' };
+    },
+    // İkili artan fark: 1, 3, 6, 10, 15 (üçgensel)
+    () => {
+      let v = rand(1, 4), diff = rand(2, 4);
+      const seq = [v];
+      for (let i = 0; i < 3; i++) { v += diff; seq.push(v); diff++; }
+      const next = seq[seq.length-1] + diff;
+      return { seq, next, hint: 'Artan farklar' };
+    },
+    // Çarpıp ekleme: x2+1
+    () => {
+      const a = rand(2, 4), add = rand(1, 3);
+      const seq = [a];
+      for (let i = 0; i < 3; i++) seq.push(seq[seq.length-1]*2 + add);
+      const next = seq[seq.length-1]*2 + add;
+      return { seq, next, hint: '×2 sonra +sabit' };
+    },
+  ];
+  const { seq, next, hint } = pick(patterns)();
+  const distractors = shuffle([next + rand(1,5), next - rand(1,5), next + rand(6,12)]);
+  return {
+    type: 'SAYISAL',
+    text: 'Dizide bir sonraki sayı kaçtır?',
+    sub: hint,
+    body: `<div class="sequence">${seq.join(',  ')},  <span class="blank">?</span></div>`,
+    ...makeOptions(next, distractors),
+    correctValue: next
+  };
+}
+
+// --- SÖZEL: Analoji ---
+function genAnalogy() {
+  const sets = [
+    { a: 'Kedi', b: 'Yavru', c: 'İnek', d: 'Buzağı', distractors: ['Tay', 'Kuzu', 'Civciv'] },
+    { a: 'Doktor', b: 'Hastane', c: 'Öğretmen', d: 'Okul', distractors: ['Sınıf', 'Üniversite', 'Kalem'] },
+    { a: 'Göz', b: 'Görmek', c: 'Kulak', d: 'Duymak', distractors: ['Konuşmak', 'Dokunmak', 'Koklamak'] },
+    { a: 'Saat', b: 'Zaman', c: 'Termometre', d: 'Sıcaklık', distractors: ['Hava', 'Basınç', 'Mesafe'] },
+    { a: 'Kalem', b: 'Yazmak', c: 'Bıçak', d: 'Kesmek', distractors: ['Pişirmek', 'Çizmek', 'Yemek'] },
+    { a: 'Balık', b: 'Yüzmek', c: 'Kuş', d: 'Uçmak', distractors: ['Yürümek', 'Koşmak', 'Zıplamak'] },
+    { a: 'Ayak', b: 'Çorap', c: 'El', d: 'Eldiven', distractors: ['Şapka', 'Kemer', 'Atkı'] },
+    { a: 'Kitap', b: 'Sayfa', c: 'Ağaç', d: 'Yaprak', distractors: ['Kök', 'Meyve', 'Çiçek'] },
+    { a: 'Susuzluk', b: 'Su', c: 'Açlık', d: 'Yemek', distractors: ['Yorgunluk', 'Hava', 'Uyku'] },
+    { a: 'Şair', b: 'Şiir', c: 'Ressam', d: 'Resim', distractors: ['Fırça', 'Boya', 'Tuval'] },
+    { a: 'Buz', b: 'Soğuk', c: 'Ateş', d: 'Sıcak', distractors: ['Yumuşak', 'Sert', 'Parlak'] },
+    { a: 'Anahtar', b: 'Kilit', c: 'Şifre', d: 'Hesap', distractors: ['Bilgisayar', 'Telefon', 'Kapı'] },
+  ];
+  const s = pick(sets);
+  return {
+    type: 'SÖZEL',
+    text: `${s.a} : ${s.b} :: ${s.c} : ?`,
+    sub: 'Aynı ilişki: ilk çift gibi ikinci çift hangisi?',
+    body: '',
+    ...makeOptions(s.d, s.distractors),
+    correctValue: s.d
+  };
+}
+
+// --- SÖZEL: Farklı olanı bul ---
+function genOddOneOut() {
+  const sets = [
+    { items: ['Elma', 'Armut', 'Muz', 'Havuç'], odd: 'Havuç', reason: 'sebze' },
+    { items: ['Köpek', 'Kedi', 'Aslan', 'Masa'], odd: 'Masa', reason: 'canlı değil' },
+    { items: ['Mavi', 'Yeşil', 'Kırmızı', 'Yuvarlak'], odd: 'Yuvarlak', reason: 'renk değil' },
+    { items: ['Kalem', 'Defter', 'Silgi', 'Top'], odd: 'Top', reason: 'kırtasiye değil' },
+    { items: ['Çekiç', 'Tornavida', 'Anahtar', 'Kitap'], odd: 'Kitap', reason: 'alet değil' },
+    { items: ['Pazartesi', 'Salı', 'Ocak', 'Çarşamba'], odd: 'Ocak', reason: 'gün değil, ay' },
+    { items: ['Göl', 'Deniz', 'Nehir', 'Dağ'], odd: 'Dağ', reason: 'su değil' },
+    { items: ['2', '4', '6', '9'], odd: '9', reason: 'tek sayı' },
+    { items: ['Türkiye', 'Almanya', 'Tokyo', 'Fransa'], odd: 'Tokyo', reason: 'ülke değil, şehir' },
+    { items: ['Piyano', 'Keman', 'Gitar', 'Davul'], odd: 'Davul', reason: 'telli değil, vurmalı' },
+  ];
+  const s = pick(sets);
+  const distractors = s.items.filter(x => x !== s.odd);
+  return {
+    type: 'SÖZEL',
+    text: 'Hangisi diğerlerinden farklıdır?',
+    sub: 'Grup mantığını bul',
+    body: '',
+    ...makeOptions(s.odd, distractors),
+    correctValue: s.odd
+  };
+}
+
+// --- SAYISAL: Problem ---
+function genWordProblem() {
+  const types = [
+    () => {
+      const x = rand(3, 12), y = rand(2, 8);
+      return {
+        text: `Bir kalem ${x} TL, bir defter ${y} TL. 3 kalem ve 2 defter kaç TL?`,
+        ans: 3*x + 2*y
+      };
+    },
+    () => {
+      const total = rand(40, 100), part = rand(10, 30);
+      return {
+        text: `${total} kişilik bir gruptan ${part} kişi ayrıldı. Geriye kaç kişi kaldı?`,
+        ans: total - part
+      };
+    },
+    () => {
+      const n = rand(4, 12), each = rand(3, 8);
+      return {
+        text: `${n} sepette her birinde ${each} elma varsa, toplam kaç elma vardır?`,
+        ans: n * each
+      };
+    },
+    () => {
+      const total = rand(50, 200);
+      const pct = pick([10, 20, 25, 50]);
+      return {
+        text: `${total}'in %${pct}'i kaçtır?`,
+        ans: total * pct / 100
+      };
+    },
+    () => {
+      const a = rand(20, 60), b = rand(2, 5);
+      return {
+        text: `${a} yaşındaki bir kişi, ${b} yıl önce kaç yaşındaydı?`,
+        ans: a - b
+      };
+    },
+    () => {
+      const speed = rand(40, 90), time = rand(2, 6);
+      return {
+        text: `Saatte ${speed} km giden bir araç ${time} saatte kaç km gider?`,
+        ans: speed * time
+      };
+    },
+  ];
+  const q = pick(types)();
+  const ans = Math.round(q.ans);
+  const distractors = shuffle([
+    ans + rand(2, 8),
+    ans - rand(2, 8),
+    ans + rand(10, 20)
+  ]).filter(x => x !== ans && x > 0).slice(0, 3);
+  while (distractors.length < 3) distractors.push(ans + rand(15, 30));
+  return {
+    type: 'SAYISAL',
+    text: q.text,
+    sub: 'Hesapla',
+    body: '',
+    ...makeOptions(ans, distractors.slice(0,3)),
+    correctValue: ans
+  };
+}
+
+// --- GÖRSEL: Şekil dizisi (SVG ile) ---
+function shapeSVG(shape, size = 56, color = '#1a1a1a', rotation = 0) {
+  const cx = size/2, cy = size/2;
+  let inner = '';
+  switch(shape) {
+    case 'circle':
+      inner = `<circle cx="${cx}" cy="${cy}" r="${size*0.35}" fill="none" stroke="${color}" stroke-width="3"/>`; break;
+    case 'square':
+      inner = `<rect x="${size*0.2}" y="${size*0.2}" width="${size*0.6}" height="${size*0.6}" fill="none" stroke="${color}" stroke-width="3"/>`; break;
+    case 'triangle':
+      inner = `<polygon points="${cx},${size*0.18} ${size*0.18},${size*0.82} ${size*0.82},${size*0.82}" fill="none" stroke="${color}" stroke-width="3"/>`; break;
+    case 'diamond':
+      inner = `<polygon points="${cx},${size*0.15} ${size*0.85},${cy} ${cx},${size*0.85} ${size*0.15},${cy}" fill="none" stroke="${color}" stroke-width="3"/>`; break;
+    case 'star':
+      const pts = [];
+      for (let i = 0; i < 10; i++) {
+        const a = (Math.PI/5)*i - Math.PI/2;
+        const r = i%2===0 ? size*0.35 : size*0.16;
+        pts.push(`${cx + r*Math.cos(a)},${cy + r*Math.sin(a)}`);
+      }
+      inner = `<polygon points="${pts.join(' ')}" fill="none" stroke="${color}" stroke-width="3"/>`; break;
+    case 'circle-filled':
+      inner = `<circle cx="${cx}" cy="${cy}" r="${size*0.35}" fill="${color}"/>`; break;
+    case 'square-filled':
+      inner = `<rect x="${size*0.2}" y="${size*0.2}" width="${size*0.6}" height="${size*0.6}" fill="${color}"/>`; break;
+    case 'triangle-filled':
+      inner = `<polygon points="${cx},${size*0.18} ${size*0.18},${size*0.82} ${size*0.82},${size*0.82}" fill="${color}"/>`; break;
+  }
+  return `<svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" style="transform: rotate(${rotation}deg);">${inner}</svg>`;
+}
+
+function genVisualPattern() {
+  const shapes = ['circle', 'square', 'triangle', 'diamond', 'star'];
+  const patterns = [
+    // Pattern 1: Aynı şekil, dolu/boş alternatif
+    () => {
+      const sh = pick(shapes);
+      const seq = [sh, sh+'-filled', sh, sh+'-filled'];
+      const next = sh;
+      const distractors = shuffle(shapes.filter(s => s !== sh)).slice(0,2).concat([sh+'-filled']);
+      return { seq, next, distractors, hint: 'Şekil tekrarı: dolu/boş' };
+    },
+    // Pattern 2: Şekil değişimi (3 farklı şekil döngüsü)
+    () => {
+      const s1 = pick(shapes), s2 = pick(shapes.filter(s=>s!==s1)), s3 = pick(shapes.filter(s=>s!==s1 && s!==s2));
+      const seq = [s1, s2, s3, s1];
+      const next = s2;
+      const distractors = shuffle(shapes.filter(s => s !== next)).slice(0,3);
+      return { seq, next, distractors, hint: '3-lü döngü' };
+    },
+    // Pattern 3: Şekil sabit, rotasyon (sadece üçgen ve elmas için)
+    () => {
+      const sh = pick(['triangle', 'diamond', 'star']);
+      const seq = [sh, sh, sh, sh];
+      const next = sh;
+      const distractors = shuffle(shapes.filter(s => s !== sh)).slice(0,3);
+      return { seq, next, distractors, hint: 'Aynı şekil tekrarı' };
+    },
+  ];
+  const { seq, next, distractors, hint } = pick(patterns)();
+
+  const visualBody = `
+    <div class="visual-block">
+      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; justify-content:center;">
+        ${seq.map(s => shapeSVG(s)).join('')}
+        <div style="font-family:'JetBrains Mono',monospace; font-size:32px; color:var(--accent); padding:0 8px;">?</div>
+      </div>
+    </div>
+  `;
+
+  // Options as visual
+  const allOpts = shuffle([next, ...distractors]);
+  return {
+    type: 'GÖRSEL',
+    text: 'Sıradaki şekil hangisi olmalı?',
+    sub: hint,
+    body: visualBody,
+    options: allOpts,
+    correctIndex: allOpts.indexOf(next),
+    correctValue: next,
+    visualOptions: true
+  };
+}
+
+// --- SAYISAL: Matris (kalan) ---
+function genMatrixLogic() {
+  // Basit kural: her satırın toplamı eşit
+  const rowSum = rand(15, 25);
+  const a = rand(1, 8), b = rand(1, 8);
+  const c = rowSum - a - b;
+  if (c < 1) return genMatrixLogic(); // retry
+  const d = rand(1, 8), e = rand(1, 8);
+  const f = rowSum - d - e;
+  if (f < 1) return genMatrixLogic();
+  const g = rand(1, 8), h = rand(1, 8);
+  const i = rowSum - g - h;
+  if (i < 1) return genMatrixLogic();
+
+  const body = `
+    <div class="visual-block">
+      <table style="border-collapse:collapse; font-family:'JetBrains Mono',monospace; font-size:24px;">
+        <tr>
+          <td style="border:2px solid #1a1a1a; padding:16px 24px;">${a}</td>
+          <td style="border:2px solid #1a1a1a; padding:16px 24px;">${b}</td>
+          <td style="border:2px solid #1a1a1a; padding:16px 24px;">${c}</td>
+        </tr>
+        <tr>
+          <td style="border:2px solid #1a1a1a; padding:16px 24px;">${d}</td>
+          <td style="border:2px solid #1a1a1a; padding:16px 24px;">${e}</td>
+          <td style="border:2px solid #1a1a1a; padding:16px 24px;">${f}</td>
+        </tr>
+        <tr>
+          <td style="border:2px solid #1a1a1a; padding:16px 24px;">${g}</td>
+          <td style="border:2px solid #1a1a1a; padding:16px 24px;">${h}</td>
+          <td style="border:2px solid #c2410c; padding:16px 24px; color:#c2410c; font-weight:600;">?</td>
+        </tr>
+      </table>
+    </div>
+  `;
+
+  const distractors = shuffle([i + rand(1,4), i - rand(1,3), i + rand(5,8)]).filter(x => x !== i && x > 0).slice(0,3);
+  while (distractors.length < 3) distractors.push(i + rand(10, 15));
+  return {
+    type: 'GÖRSEL',
+    text: '? yerine hangi sayı gelmeli?',
+    sub: 'Her satırın toplamı aynıdır',
+    body,
+    ...makeOptions(i, distractors.slice(0,3)),
+    correctValue: i
+  };
+}
+
+// ============================================================
+// TEST ENGINE
+// ============================================================
+const TOTAL_Q = 15;
+const TOTAL_TIME = 12 * 60; // saniye
+
+let questions = [];
+let currentIdx = 0;
+let userAnswers = [];
+let startTime = 0;
+let timerInterval = null;
+let timeLeft = TOTAL_TIME;
+
+function generateQuestions() {
+  // Karışık ama dengeli dağılım
+  const generators = [
+    genNumberSequence, genNumberSequence, genNumberSequence,
+    genWordProblem, genWordProblem,
+    genAnalogy, genAnalogy, genAnalogy,
+    genOddOneOut, genOddOneOut,
+    genVisualPattern, genVisualPattern, genVisualPattern,
+    genMatrixLogic, genMatrixLogic,
+  ];
+  return shuffle(generators).map(fn => fn());
+}
+
+function startTest() {
+  questions = generateQuestions();
+  userAnswers = new Array(TOTAL_Q).fill(null);
+  currentIdx = 0;
+  startTime = Date.now();
+  timeLeft = TOTAL_TIME;
+
+  document.getElementById('start').classList.add('hidden');
+  document.getElementById('quiz').classList.remove('hidden');
+  document.getElementById('qTotal').textContent = TOTAL_Q;
+
+  renderQuestion();
+  startTimer();
+}
+
+function startTimer() {
+  updateTimerDisplay();
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerDisplay();
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      finishTest();
+    }
+  }, 1000);
+}
+
+function updTimer() { updateTimerDisplay(); }
+function updateTimerDisplay() {
+  const m = Math.floor(timeLeft / 60);
+  const s = timeLeft % 60;
+  const el = document.getElementById('timer');
+  el.textContent = `${m}:${String(s).padStart(2,'0')}`;
+  if (timeLeft < 60) el.classList.add('warn');
+}
+
+function renderQuestion() {
+  const q = questions[currentIdx];
+  document.getElementById('qNum').textContent = currentIdx + 1;
+  document.getElementById('qType').textContent = q.type;
+  document.getElementById('qText').textContent = q.text;
+  document.getElementById('qSub').textContent = q.sub || '';
+  document.getElementById('qBody').innerHTML = q.body || '';
+  document.getElementById('progress').style.width = ((currentIdx+1)/TOTAL_Q*100) + '%';
+
+  const opts = document.getElementById('options');
+  opts.className = q.visualOptions ? 'options visual' : 'options';
+  opts.innerHTML = '';
+  q.options.forEach((opt, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'opt' + (q.visualOptions ? ' opt-visual' : '');
+    if (userAnswers[currentIdx] === idx) btn.classList.add('selected');
+    const letter = ['A', 'B', 'C', 'D'][idx];
+    if (q.visualOptions) {
+      btn.innerHTML = `<span class="letter">${letter}</span>${shapeSVG(opt, 48)}`;
+    } else {
+      btn.innerHTML = `<span class="letter">${letter}</span><span>${opt}</span>`;
+    }
+    btn.onclick = () => selectAnswer(idx);
+    opts.appendChild(btn);
+  });
+
+  document.getElementById('prevBtn').disabled = currentIdx === 0;
+  document.getElementById('prevBtn').style.opacity = currentIdx === 0 ? '0.4' : '1';
+  document.getElementById('nextBtn').textContent = currentIdx === TOTAL_Q - 1 ? 'Bitir ✓' : 'Sonraki →';
+}
+
+function selectAnswer(idx) {
+  userAnswers[currentIdx] = idx;
+  renderQuestion();
+}
+
+function prevQ() {
+  if (currentIdx > 0) { currentIdx--; renderQuestion(); }
+}
+function nextQ() {
+  if (currentIdx < TOTAL_Q - 1) { currentIdx++; renderQuestion(); }
+  else finishTest();
+}
+
+function finishTest() {
+  clearInterval(timerInterval);
+  const elapsed = Math.floor((Date.now() - startTime) / 1000);
+  let correct = 0;
+  questions.forEach((q, i) => { if (userAnswers[i] === q.correctIndex) correct++; });
+  const wrong = TOTAL_Q - correct;
+
+  // Tahmini IQ hesaplama (eğlence amaçlı, gerçek değil):
+  // 100 baz, her doğru ~5 puan, süre bonusu/cezası
+  const accuracy = correct / TOTAL_Q;
+  const timeBonus = Math.max(0, (TOTAL_TIME - elapsed) / TOTAL_TIME) * 10;
+  let iq = Math.round(70 + accuracy * 60 + timeBonus);
+  iq = Math.max(70, Math.min(145, iq));
+
+  let category = '';
+  if (iq >= 130) category = 'Çok Yüksek';
+  else if (iq >= 115) category = 'Yüksek';
+  else if (iq >= 100) category = 'Ortalama Üstü';
+  else if (iq >= 85) category = 'Ortalama';
+  else category = 'Ortalama Altı';
+
+  document.getElementById('quiz').classList.add('hidden');
+  document.getElementById('result').classList.remove('hidden');
+  document.getElementById('iqScore').textContent = iq;
+  document.getElementById('iqCategory').textContent = category;
+  document.getElementById('rCorrect').textContent = correct;
+  document.getElementById('rWrong').textContent = wrong;
+  const m = Math.floor(elapsed / 60), s = elapsed % 60;
+  document.getElementById('rTime').textContent = `${m}:${String(s).padStart(2,'0')}`;
+
+  const review = document.getElementById('reviewList');
+  review.innerHTML = '';
+  questions.forEach((q, i) => {
+    const ok = userAnswers[i] === q.correctIndex;
+    const userAns = userAnswers[i] !== null ?
+      (q.visualOptions ? q.options[userAnswers[i]] : q.options[userAnswers[i]]) : '—';
+    const item = document.createElement('div');
+    item.className = 'review-item';
+    item.innerHTML = `
+      <span class="mark ${ok ? 'ok' : 'no'}">${ok ? '✓' : '✗'}</span>
+      <span class="qtext">${i+1}. ${q.text}</span>
+      <span class="ans">Doğru: ${q.correctValue}</span>
+    `;
+    review.appendChild(item);
+  });
+}
+</script>
+</body>
+</html>
