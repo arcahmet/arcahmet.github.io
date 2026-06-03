@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Doğum Haritası — Kişisel Astroloji Analizi</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Newsreader:ital,wght@0,400;0,500;1,400&family=Spline+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/astronomy-engine/astronomy.browser.min.js"></script>
+<style>
+  :root {
+    --bg: #f4f1ea;
+    --bg-card: #fffdf8;
+    --ink: #2b2926;
+    --ink-soft: #6b665d;
+    --ink-faint: #9b958a;
+    --line: #e3ddd0;
+    --line-soft: #ece7dc;
+    --accent: #4a3f6b;
+    --accent-soft: #eeebf4;
+    --accent-line: #d4cee6;
+    --gold: #8a7a3a;
+    --gold-soft: #f3efe0;
+    --gold-line: #dbd2ae;
+    --radius: 14px;
+    --radius-sm: 9px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Spline Sans', -apple-system, sans-serif;
+    background: var(--bg);
+    background-image: radial-gradient(circle at 15% 10%, rgba(74,63,107,0.04), transparent 40%),
+                      radial-gradient(circle at 85% 90%, rgba(138,122,58,0.04), transparent 40%);
+    color: var(--ink);
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 0 16px 80px;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+  header {
+    padding: 48px 0 28px;
+    text-align: center;
+  }
+  .eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: clamp(30px, 6vw, 44px);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    margin-bottom: 14px;
+  }
+  .subtitle {
+    font-family: 'Newsreader', serif;
+    font-size: 17px;
+    color: var(--ink-soft);
+    max-width: 520px;
+    margin: 0 auto;
+    font-style: italic;
+  }
+  .privacy {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    justify-content: center;
+    margin: 22px auto 0;
+    font-size: 13px;
+    color: var(--ink-faint);
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: 100px;
+    padding: 8px 18px;
+    width: fit-content;
+  }
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 28px 30px;
+    margin-top: 24px;
+  }
+  .card-title {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    margin-bottom: 20px;
+  }
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .form-grid .full { grid-column: 1 / -1; }
+  .field label {
+    display: block;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--ink-soft);
+    margin-bottom: 5px;
+    letter-spacing: 0.02em;
+  }
+  .field input, .field select {
+    width: 100%;
+    font-family: 'Spline Sans', sans-serif;
+    font-size: 16px;
+    color: var(--ink);
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 11px 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  .field input:focus, .field select:focus {
+    border-color: var(--accent-line);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+  .field select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b665d' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+  }
+  .coord-row {
+    display: flex;
+    gap: 12px;
+  }
+  .coord-row .field { flex: 1; }
+  .coord-hint {
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin-top: 4px;
+  }
+  .btn {
+    font-family: 'Spline Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    border-radius: 100px;
+    padding: 13px 24px;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+  }
+  .btn-primary {
+    width: 100%;
+    background: var(--accent);
+    color: #fff;
+    margin-top: 20px;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-primary:hover:not(:disabled) { background: #3a3256; box-shadow: 0 4px 14px rgba(74,63,107,0.3); }
+  .btn-primary:active:not(:disabled) { background: #2f294a; transform: scale(0.98); }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-sm {
+    padding: 9px 18px;
+    font-size: 13px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border: 1px solid var(--accent-line);
+  }
+  .btn-sm:hover { background: var(--accent-line); }
+  .btn-sm:active:not(:disabled) { background: var(--accent); color: #fff; }
+  .btn-sm:disabled { opacity: 0.4; cursor: not-allowed; }
+  .field-row { display: flex; gap: 10px; align-items: flex-end; }
+  .field-row .field { flex: 1; }
+  .field-row .btn { margin-top: 0; flex-shrink: 0; }
+  .loading {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+  .loading.show { display: flex; }
+  .spinner {
+    width: 18px; height: 18px;
+    border: 2px solid var(--line);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error {
+    display: none;
+    background: #f8e8e8;
+    border: 1px solid #d4a0a0;
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-size: 13px;
+    color: #8a3030;
+    margin-top: 12px;
+  }
+  .error.show { display: block; }
+
+  /* Results */
+  .result-section { display: none; }
+  .result-section.show { display: block; animation: fade 0.6s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  .result-header {
+    text-align: center;
+    padding: 8px 0 24px;
+  }
+  .result-header h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 500;
+    font-size: 28px;
+    letter-spacing: -0.02em;
+  }
+  .result-header .meta {
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-top: 6px;
+  }
+  .analysis-text {
+    font-size: 14.5px;
+    line-height: 1.75;
+    color: var(--ink);
+  }
+  .analysis-text p { margin-bottom: 14px; }
+  .analysis-text p:last-child { margin-bottom: 0; }
+
+  @media (max-width: 640px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .card { padding: 20px 16px; }
+    .field-row { flex-wrap: wrap; }
+    .field-row .btn { width: 100%; justify-content: center; }
+    .coord-row { flex-wrap: wrap; }
+    .coord-row .field { flex: 1 1 100%; }
+    .privacy { flex-wrap: wrap; justify-content: center; text-align: center; padding: 10px 14px; border-radius: var(--radius); font-size: 12px; }
+    .analysis-text { font-size: 14px; }
+    .result-header h2 { font-size: 22px; }
+  }
+  @media (max-width: 400px) {
+    body { padding: 0 10px 60px; }
+    .card { padding: 16px 12px; border-radius: var(--radius-sm); }
+    .btn { padding: 12px 20px; font-size: 14px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Astroloji · Doğum Haritası</div>
+    <h1>Doğum Haritası Çıkarıcı</h1>
+    <p class="subtitle">Adın, doğum tarihin, saatin ve yerinle gökyüzünün tam o andaki halini hesaplayalım.</p>
+    <div class="privacy">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Tüm veriler yalnızca bu cihazda kalır — hiçbir şey sunucuya gönderilmez.
+    </div>
+  </header>
+
+  <div class="card" id="form-card">
+    <div class="card-title">Bilgilerini gir</div>
+    <div class="form-grid">
+      <div class="field full">
+        <label>Adın Soyadın</label>
+        <input type="text" id="name" placeholder="Örn: Ahmet Arıcı" autocomplete="name">
+      </div>
+      <div class="field">
+        <label>Doğum Tarihi</label>
+        <input type="date" id="birth-date">
+      </div>
+      <div class="field">
+        <label>Doğum Saati</label>
+        <input type="time" id="birth-time" step="60">
+      </div>
+      <div class="field">
+        <label>Saat Dilimi</label>
+        <select id="tz-select">
+          <option value="auto">Türkiye (otomatik)</option>
+          <option value="3">UTC+3 (Yaz saati)</option>
+          <option value="2">UTC+2 (Kış saati)</option>
+          <option value="0">UTC (GMT)</option>
+        </select>
+      </div>
+      <div class="field full">
+        <label>Doğum Yeri</label>
+        <div class="field-row">
+          <div class="field"><input type="text" id="place" placeholder="Örn: İstanbul, Ankara, İzmir..."></div>
+          <button class="btn btn-sm" id="locate-btn">Bul</button>
+        </div>
+        <div class="loading" id="geo-loading"><div class="spinner"></div> Konum bulunuyor...</div>
+        <div class="coord-row" style="margin-top:8px">
+          <div class="field"><label>Enlem</label><input type="number" id="lat" step="any" placeholder="41.00"></div>
+          <div class="field"><label>Boylam</label><input type="number" id="lon" step="any" placeholder="28.95"></div>
+        </div>
+        <div class="coord-hint">Yer adı yazıp "Bul"a tıkla veya koordinatları elle gir.</div>
+        <div class="error" id="geo-error">Konum bulunamadı. Lütfen koordinatları elle girin.</div>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="calc-btn">Haritayı Çıkar</button>
+  </div>
+
+  <div class="result-section" id="result-section">
+    <div class="result-header">
+      <h2 id="result-name"></h2>
+      <div class="meta" id="result-meta"></div>
+    </div>
+
+    <div class="analysis-text" id="analysis-text"></div>
+  </div>
+
+  <footer style="margin-top:48px;padding-top:24px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-faint);text-align:center;line-height:1.7">
+    Bu analiz eğlence ve kişisel gelişim amaçlıdır. Gezegen konumları Astronomy Engine kullanılarak hesaplanır.<br>Kendini tanımak için bir araç — unutma, hiçbir yıldız senin seçimlerinden daha güçlü değildir.
+  </footer>
+</div>
+
+<script>
+// ====== ZODIAC DATA ======
+const ZODIAC = [
+  { tr: 'Koç', en: 'Aries', sym: '♈', emoji: '🐏', start: 0 },
+  { tr: 'Boğa', en: 'Taurus', sym: '♉', emoji: '🐂', start: 30 },
+  { tr: 'İkizler', en: 'Gemini', sym: '♊', emoji: '👯', start: 60 },
+  { tr: 'Yengeç', en: 'Cancer', sym: '♋', emoji: '🦀', start: 90 },
+  { tr: 'Aslan', en: 'Leo', sym: '♌', emoji: '🦁', start: 120 },
+  { tr: 'Başak', en: 'Virgo', sym: '♍', emoji: '🌾', start: 150 },
+  { tr: 'Terazi', en: 'Libra', sym: '♎', emoji: '⚖️', start: 180 },
+  { tr: 'Akrep', en: 'Scorpio', sym: '♏', emoji: '🦂', start: 210 },
+  { tr: 'Yay', en: 'Sagittarius', sym: '♐', emoji: '🏹', start: 240 },
+  { tr: 'Oğlak', en: 'Capricorn', sym: '♑', emoji: '🐐', start: 270 },
+  { tr: 'Kova', en: 'Aquarius', sym: '♒', emoji: '🏺', start: 300 },
+  { tr: 'Balık', en: 'Pisces', sym: '♓', emoji: '🐟', start: 330 }
+];
+
+function zodiacFromDeg(d) {
+  let deg = ((d % 360) + 360) % 360;
+  for (let i = ZODIAC.length - 1; i >= 0; i--) {
+    if (deg >= ZODIAC[i].start) return { ...ZODIAC[i], deg: deg - ZODIAC[i].start };
+  }
+  return { ...ZODIAC[11], deg: deg + 30 - ZODIAC[11].start };
+}
+
+function formatDeg(d) { return Math.floor(d) + '°' + Math.floor((d % 1) * 60) + "'"; }
+function formatDegShort(d) { return Math.round(d) + '°'; }
+
+const PLANETS = [
+  { key: 'Sun', tr: 'Güneş', emoji: '☀️' },
+  { key: 'Moon', tr: 'Ay', emoji: '🌙' },
+  { key: 'Mercury', tr: 'Merkür', emoji: '☿' },
+  { key: 'Venus', tr: 'Venüs', emoji: '♀' },
+  { key: 'Mars', tr: 'Mars', emoji: '♂' },
+  { key: 'Jupiter', tr: 'Jüpiter', emoji: '♃' },
+  { key: 'Saturn', tr: 'Satürn', emoji: '♄' },
+  { key: 'Uranus', tr: 'Uranüs', emoji: '⛢' },
+  { key: 'Neptune', tr: 'Neptün', emoji: '♆' },
+  { key: 'Pluto', tr: 'Plüton', emoji: '♇' }
+];
+
+const ASPECT_TYPES = [
+  { name: 'Kavuşum', symbol: '☌', angle: 0, orb: 8, emoji: '🟤' },
+  { name: 'Altmışlık', symbol: '⚹', angle: 60, orb: 6, emoji: '🟢' },
+  { name: 'Kare', symbol: '□', angle: 90, orb: 8, emoji: '🔴' },
+  { name: 'Üçgen', symbol: '△', angle: 120, orb: 8, emoji: '🔵' },
+  { name: 'Karşıt', symbol: '☍', angle: 180, orb: 8, emoji: '⚫' }
+];
+
+// ====== GEOCODING ======
+const CITY_DB = {
+  'adana': '37.00,35.32', 'adiyaman': '37.76,38.28', 'afyonkarahisar': '38.76,30.54', 'agri': '39.72,43.05', 'aksaray': '38.37,34.03',
+  'amasya': '40.65,35.83', 'ankara': '39.93,32.86', 'antalya': '36.88,30.70', 'ardahan': '41.11,42.70', 'artvin': '41.18,41.82',
+  'aydin': '37.85,27.85', 'balikesir': '39.65,27.88', 'bartin': '41.63,32.34', 'batman': '37.88,41.13', 'bayburt': '40.26,40.23',
+  'bilecik': '40.14,29.98', 'bingol': '38.88,40.50', 'bitlis': '38.40,42.11', 'bolu': '40.74,31.61', 'burdur': '37.72,30.29',
+  'bursa': '40.19,29.06', 'canakkale': '40.15,26.41', 'cankiri': '40.60,33.62', 'corum': '40.55,34.95', 'denizli': '37.78,29.09',
+  'diyarbakir': '37.91,40.24', 'duzce': '40.84,31.16', 'edirne': '41.68,26.56', 'elazig': '38.68,39.22', 'erzincan': '39.75,39.49',
+  'erzurum': '39.90,41.27', 'eskisehir': '39.77,30.52', 'gaziantep': '37.07,37.38', 'giresun': '40.91,38.39', 'gumushane': '40.46,39.48',
+  'hakkari': '37.58,43.74', 'hatay': '36.20,36.16', 'igdir': '39.92,44.04', 'isparta': '37.76,30.55', 'istanbul': '41.01,28.95',
+  'izmir': '38.42,27.14', 'kahramanmaras': '37.58,36.93', 'karabuk': '41.20,32.63', 'karaman': '37.18,33.22', 'kars': '40.60,43.10',
+  'kastamonu': '41.38,33.77', 'kayseri': '38.72,35.49', 'kilis': '36.72,37.12', 'kirikkale': '39.84,33.51', 'kirklareli': '41.73,27.22',
+  'kirsehir': '39.15,34.16', 'kocaeli': '40.85,29.87', 'konya': '37.87,32.48', 'kutahya': '39.42,29.98', 'malatya': '38.35,38.31',
+  'manisa': '38.61,27.43', 'mardin': '37.31,40.74', 'mersin': '36.80,34.63', 'mugla': '37.22,28.37', 'mus': '38.73,41.49',
+  'nevsehir': '38.62,34.71', 'nigde': '37.97,34.68', 'ordu': '40.98,37.88', 'osmaniye': '37.07,36.25', 'rize': '41.02,40.52',
+  'sakarya': '40.78,30.40', 'samsun': '41.29,36.33', 'sanliurfa': '37.16,38.80', 'siirt': '37.93,41.94', 'sinop': '42.02,35.15',
+  'sirnak': '37.52,42.46', 'sivas': '39.75,37.02', 'tekirdag': '40.98,27.52', 'tokat': '40.31,36.56', 'trabzon': '41.00,39.72',
+  'tunceli': '39.11,39.55', 'usak': '38.68,29.41', 'van': '38.49,43.38', 'yalova': '40.66,29.28', 'yozgat': '39.82,34.81', 'zonguldak': '41.46,31.80',
+  'lefkosa': '35.19,33.36', 'gazimagusa': '35.13,33.95', 'girne': '35.34,33.32'
+};
+
+document.getElementById('locate-btn').addEventListener('click', async () => {
+  const raw = document.getElementById('place').value.trim();
+  if (!raw) return;
+  const loading = document.getElementById('geo-loading');
+  const error = document.getElementById('geo-error');
+  loading.classList.add('show');
+  error.classList.remove('show');
+
+  const q = raw.toLowerCase().replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c').replace(/[^a-z0-9]/g, '');
+  const exact = CITY_DB[q];
+  if (exact) {
+    const [lt, ln] = exact.split(',');
+    document.getElementById('lat').value = lt;
+    document.getElementById('lon').value = ln;
+    document.getElementById('place').value = raw.charAt(0).toUpperCase() + raw.slice(1).toLowerCase();
+    loading.classList.remove('show');
+    return;
+  }
+
+  for (const [k, v] of Object.entries(CITY_DB)) {
+    if (q.length >= 3 && k.includes(q)) {
+      const [lt, ln] = v.split(',');
+      document.getElementById('lat').value = lt;
+      document.getElementById('lon').value = ln;
+      document.getElementById('place').value = k.charAt(0).toUpperCase() + k.slice(1);
+      loading.classList.remove('show');
+      return;
+    }
+  }
+
+  let data;
+  const urls = [
+    'https://photon.komoot.io/api/?q=' + encodeURIComponent(raw) + '&limit=3&lang=tr',
+    'https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(raw) + '&limit=3'
+  ];
+  for (const url of urls) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) continue;
+      const json = await res.json();
+      const features = json.features || json;
+      if (features && features.length > 0) {
+        data = features[0];
+        break;
+      }
+    } catch {}
+  }
+  if (data) {
+    const lat = data.lat || (data.geometry && data.geometry.coordinates ? data.geometry.coordinates[1] : null);
+    const lon = data.lon || (data.geometry && data.geometry.coordinates ? data.geometry.coordinates[0] : null);
+    const name = data.display_name || (data.properties ? (data.properties.city || data.properties.name || data.properties.locality) : null) || raw;
+    if (lat && lon) {
+      document.getElementById('lat').value = parseFloat(lat).toFixed(4);
+      document.getElementById('lon').value = parseFloat(lon).toFixed(4);
+      document.getElementById('place').value = name.split(',')[0];
+      loading.classList.remove('show');
+      return;
+    }
+  }
+  error.textContent = 'Konum bulunamadı. Koordinatları elle girin veya daha genel bir şehir adı yazın.';
+  error.classList.add('show');
+  loading.classList.remove('show');
+});
+
+
+
+// ====== ASTRONOMY ENGINE HELPERS ======
+function jdFromYMD(year, month, day, hour) {
+  let y = year, m = month, d = day + hour / 24;
+  if (m <= 2) { y--; m += 12; }
+  const A = Math.floor(y / 100);
+  const B = 2 - A + Math.floor(A / 4);
+  return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + d + B - 1524.5;
+}
+
+function calcObliquity(jd) {
+  const T = (jd - 2451545.0) / 36525;
+  return 23.439291 - 0.0130042 * T - 0.00000016 * T * T + 0.000000504 * T * T * T;
+}
+
+function calcGMST(jd) {
+  let gmst = 280.46061837 + 360.98564736629 * (jd - 2451545.0);
+  gmst = ((gmst % 360) + 360) % 360;
+  return gmst;
+}
+
+function getPlanetLon(body, time) {
+  if (body === 'Sun') {
+    const sun = Astronomy.SunPosition(time);
+    return sun.lon;
+  }
+  if (body === 'Moon') {
+    const moon = Astronomy.GeoMoon(time);
+    return moon.elon;
+  }
+  const bodyMap = {
+    Mercury: Astronomy.Body.Mercury,
+    Venus: Astronomy.Body.Venus,
+    Mars: Astronomy.Body.Mars,
+    Jupiter: Astronomy.Body.Jupiter,
+    Saturn: Astronomy.Body.Saturn,
+    Uranus: Astronomy.Body.Uranus,
+    Neptune: Astronomy.Body.Neptune,
+    Pluto: Astronomy.Body.Pluto
+  };
+  const b = bodyMap[body];
+  if (!b) return 0;
+  try {
+    const vec = Astronomy.GeoVector(b, time, true);
+    const ecl = Astronomy.Ecliptic(vec);
+    return ecl.elon;
+  } catch { return 0; }
+}
+
+function calcAscendant(ramcDeg, latDeg, epsDeg) {
+  const ramc = ramcDeg * Math.PI / 180;
+  const lat = latDeg * Math.PI / 180;
+  const eps = epsDeg * Math.PI / 180;
+  const asc = Math.atan2(
+    Math.cos(ramc),
+    -(Math.sin(eps) * Math.tan(lat) + Math.cos(eps) * Math.sin(ramc))
+  );
+  let ascDeg = asc * 180 / Math.PI;
+  if (ascDeg < 0) ascDeg += 360;
+  return ascDeg;
+}
+
+function calcMC(ramcDeg, epsDeg) {
+  const ramc = ramcDeg * Math.PI / 180;
+  const eps = epsDeg * Math.PI / 180;
+  let mc = Math.atan2(Math.tan(ramc), Math.cos(eps)) * 180 / Math.PI;
+  if (mc < 0) mc += 360;
+  return mc;
+}
+
+function calcHouses(ascDeg) {
+  const houses = [];
+  for (let i = 0; i < 12; i++) {
+    houses.push(((ascDeg + i * 30) % 360 + 360) % 360);
+  }
+  return houses;
+}
+
+function calcAspects(positions) {
+  const aspects = [];
+  const keys = Object.keys(positions);
+  for (let i = 0; i < keys.length; i++) {
+    for (let j = i + 1; j < keys.length; j++) {
+      const a = positions[keys[i]];
+      const b = positions[keys[j]];
+      let diff = Math.abs(a.lon - b.lon) % 360;
+      if (diff > 180) diff = 360 - diff;
+      for (const asp of ASPECT_TYPES) {
+        const orb = Math.abs(diff - asp.angle);
+        if (orb <= asp.orb) {
+          aspects.push({
+            p1: keys[i], p1Tr: a.tr, p1Emoji: a.emoji,
+            p2: keys[j], p2Tr: b.tr, p2Emoji: b.emoji,
+            type: asp,
+            orb: Math.round(orb * 10) / 10,
+            exact: Math.round(diff * 10) / 10
+          });
+          break;
+        }
+      }
+    }
+  }
+  return aspects;
+}
+
+// ====== INTERPRETATIONS ======
+const SUN_INTERP = {
+  'Koç': 'Hayata atılgan ve cesur bir enerjiyle yaklaşırsın. Önüne çıkan engellerden yılmaz, hemen harekete geçersin. Başkalarının beklediği durumlarda sen ilk adımı atmaktan çekinmezsin.',
+  'Boğa': 'Sakin ve kararlı bir yapın var. İşler ne kadar karmaşık olursa olsun, sabırla ve istikrarla yol alırsın. Güvende hissetmek senin için önemlidir; sağlam ilişkiler ve düzenli bir hayat sana huzur verir.',
+  'İkizler': 'Meraklı ve konuşkan bir ruhun var. Yeni şeyler öğrenmek, farklı insanlarla tanışmak ve fikir alışverişi yapmak seni canlı tutar. Zihnin hızlı çalışır, çok yönlü bir bakış açın vardır.',
+  'Yengeç': 'Sezgilerin kuvvetlidir; insanların ne hissettiğini hemen anlarsın. Ailene ve sevdiklerine bağlı, onları koruyup kollamayı içten gelen bir ihtiyaç gibi yaşarsın.',
+  'Aslan': 'Doğal bir ışıltın ve sıcaklığın var. İnsanların dikkatini çeker, bulunduğun ortama enerji katarsın. Cömert ve arkadaş canlısı yapınla sevdiklerine ilham verirsin.',
+  'Başak': 'İşlerin titizlikle ve doğru yapılması senin için önemlidir. Detayları görür, pratik çözümler üretirsin. Başkalarına yardım etmekten ve faydalı olmaktan mutluluk duyarsın.',
+  'Terazi': 'İlişkilerde denge ve uyum senin için çok önemlidir. İnsanları birleştirir, ortak noktaları bulur ve gergin ortamları yumuşatırsın. Güzellik ve estetik doğal olarak ilgini çeker.',
+  'Akrep': 'Derin ve tutkulu bir yapın var. Yüzeyde kalan şeyler sana yetmez, olayların ardındaki gerçekleri merak edersin. Duygularını yoğun yaşar ve dönüşümlerden güçlenerek çıkarsın.',
+  'Yay': 'Özgürlüğüne düşkün, iyimser ve maceracı bir ruhun var. Yeni deneyimlere, farklı kültürlere ve keşfe açıksın. Samimi ve doğal tavrınla insanlar sana güvenir.',
+  'Oğlak': 'Disiplinli ve sorumluluk sahibi bir karakterin var. Zorluklar seni yıldırmaz, aksine daha da güçlendirir. Uzun vadeli düşünür, adım adım ilerleyerek hedeflerine ulaşırsın.',
+  'Kova': 'Özgün ve farklı düşünen bir yapın var. Alışılmış kalıpların dışına çıkar, olaylara kendi açından bakarsın. İnsanlık, arkadaşlık ve toplumsal konular seni derinden ilgilendirir.',
+  'Balık': 'Hayal gücün geniş, duyarlı ve anlayışlısın. İnsanların derdini dinler, onları anlar ve içten bir şefkatle yaklaşırsın. Sanat, müzik ve yaratıcılık sana doğal bir ifade alanı sunar.'
+};
+
+const MOON_INTERP = {
+  'Koç': 'Duygularını içten ve doğrudan yaşarsın. Bir şey hissettiğinde hemen belli eder, içinde tutamazsın. İlk tepkin güçlüdür ama çabuk sakinleşirsin.',
+  'Boğa': 'Duygusal açıdan istikrarlı ve güvenilir bir yapın var. Tanıdık ortamlarda, sevdiğin insanlarla birlikteyken kendini güvende hissedersin. Alışkanlıkların ve rutinlerin sana huzur verir.',
+  'İkizler': 'Duygularını konuşarak ifade edersin. Zihinsel olarak uyarılmak ve ilginç sohbetler etmek duygusal dengen için önemlidir. Ruh halin zaman zaman değişkenlik gösterebilir.',
+  'Yengeç': 'İç dünyan hassas ve zengindir. Sevdiğin insanlarla güçlü bağlar kurar, onların mutluluğu için elinden geleni yaparsın. İçgüdülerin seni nadiren yanıltır.',
+  'Aslan': 'Duygularını açıkça ve cömertçe ifade edersin. İlgi görmek, takdir edilmek ve özel hissettirilmekten hoşlanırsın. Sevdiğin insanlara karşı koruyucu ve cömertsin.',
+  'Başak': 'Duygularını mantık süzgecinden geçirirsin. Birinin derdine çözüm bulmak, yardım etmek seni iyi hissettirir. Düzenli ve planlı bir hayat duygusal olarak rahatlatır.',
+  'Terazi': 'Duygusal huzurun, ilişkilerindeki uyuma bağlıdır. Tartışma ve gerginlik seni rahatsız eder, güzel ve dengeli bir ortamda kendini daha iyi hissedersin.',
+  'Akrep': 'Duyguların yoğun ve derindir. İnsanlarla güçlü, anlamlı bağlar kurmak istersin. Güven senin için çok önemlidir; birine güvendiğinde tüm kalbinle bağlanırsın.',
+  'Yay': 'Duygusal olarak özgür ve bağımsız olmak istersin. Seyahat etmek, yeni yerler keşfetmek ve macera yaşamak seni mutlu eder. İyimserliğin sayesinde zor günleri kolay atlatırsın.',
+  'Oğlak': 'Duygularını kontrollü ve ölçülü yaşarsın. Güçlü ve dayanıklı görünmek senin için önemlidir. Hayatta güvence ve başarı duygusal ihtiyaçlarının başında gelir.',
+  'Kova': 'Duygusal olarak bağımsız ve alışılmadık bir yapın var. İnsanlarla arkadaşça ve eşit ilişkiler kurmak hoşuna gider. Duygusal konulara mantıklı ve sakin yaklaşırsın.',
+  'Balık': 'Duygusal olarak son derece hassas ve anlayışlısın. Çevrendeki insanların ruh halini kolayca hissedersin. Yaratıcılık ve hayal gücü duygusal dünyanın önemli bir parçasıdır.'
+};
+
+const RISING_INTERP = {
+  'Koç': 'İnsanlara karşı enerjik ve girişken bir havan var. Yeni ortamlara kolay uyum sağlar, kendini rahatça ifade edersin. İlk izlenim olarak cesur ve kendinden emin görünürsün.',
+  'Boğa': 'Sakin, güvenilir ve sağlam bir duruşun var. İnsanlar sana doğal olarak güvenir. Acele etmez, işleri kendi hızında ve titizlikle yapmayı seversin.',
+  'İkizler': 'Konuşkan, esprili ve zeki bir izlenim bırakırsın. İnsanlarla kolay iletişim kurar, her ortamda kendini rahat hissedersin. Meraklı bakışların ve hızlı cevapların dikkat çeker.',
+  'Yengeç': 'Dışarıya nazik, sıcakkanlı ve koruyucu bir hava verirsin. Yüz ifaden ve tavırların içten gelir, insanlar sana kolayca yaklaşır. Duygusal zekân hemen fark edilir.',
+  'Aslan': 'Doğal bir karizman ve sıcak bir duruşun var. Odaya girdiğinde fark edilir, insanlar senin varlığından etkilenir. Dışarıya özgüvenli ve cömert bir izlenim verirsin.',
+  'Başak': 'Mütevazı, zeki ve çalışkan bir duruşun var. Detaylara verdiğin önem ve pratik zekân hemen fark edilir. İnsanlar sana güvenir ve danışmayı sever.',
+  'Terazi': 'Zarif, kibar ve çekici bir duruşun var. Sosyal ortamlarda uyumlu ve dengeli tavrınla öne çıkarsın. İnsanları bir araya getiren doğal bir yeteneğin vardır.',
+  'Akrep': 'Gizemli, yoğun ve etkileyici bir duruşun var. İnsanlar seni çözmekte zorlanır, bu da merak uyandırır. Derin ve düşünceli bakışların dikkat çeker.',
+  'Yay': 'Dışarıya iyimser, samimi ve maceracı bir hava verirsin. Gülümseyen yüzün ve açık tavrın insanları etkiler. Özgür ruhlu ve arkadaş canlısı görünürsün.',
+  'Oğlak': 'Ciddi, ağırbaşlı ve sorumlu bir izlenim bırakırsın. İnsanlar sana saygı duyar ve güvenir. Sakin ve ölçülü tavrınla olgun bir duruş sergilersin.',
+  'Kova': 'Farklı, özgün ve arkadaş canlısı bir duruşun var. Sıradan kalıplara uymaz, kendi tarzını yaratırsın. İnsancıl yaklaşımın ve açık fikirliliğin hemen fark edilir.',
+  'Balık': 'Yumuşak, anlayışlı ve hayalperest bir izlenim bırakırsın. İnsanlar sana kolayca açılır, seni rahatlatıcı ve destekleyici bulur. Sanatsal bir duruşun vardır.'
+};
+
+
+
+const ASPECT_INTERP = {
+  'Kavuşum': 'Bu iki gezegenin enerjisi birleşiyor ve birlikte çalışıyor. Yeteneklerini yoğunlaştıran güçlü bir etki.',
+  'Altmışlık': 'Uyumlu ve destekleyici bir açı. Bu iki gezegenin enerjileri doğal olarak birbirini tamamlıyor.',
+  'Kare': 'Meydan okuyucu bir açı. Bu iki gezegen arasında gerilim var ama bu, büyümen için itici güç olabilir.',
+  'Üçgen': 'Akıcı ve doğal bir yetenek açısı. Bu iki gezegenin enerjileri sorunsuzca birleşiyor, sana doğal bir kolaylık sağlıyor.',
+  'Karşıt': 'Dengeleyici bir açı. Bu iki gezegen zıt kutupları temsil ediyor; dengeyi bulduğunda büyük bir uyum yakalarsın.'
+};
+
+// ====== PLANET SIGN INTERPRETATIONS ======
+const PLANET_SIGN_INTERP = {
+  Sun: {
+    'Koç': 'Cesur, atılgan ve öncü bir ruhun var. Hayata "ben buradayım" diyerek girer, liderlik etmekten çekinmezsin.',
+    'Boğa': 'İstikrarlı, sabırlı ve güvenilir bir karakterin var. Güven ve tutarlılık en önemli değerlerindir.',
+    'İkizler': 'Meraklı, zeki ve iletişim yeteneğin güçlüdür. Zihnin sürekli aktif, çok yönlü ve uyumlusun.',
+    'Yengeç': 'Sezgisel, koruyucu ve duygusal zekân yüksektir. Ailen ve evin hayatında merkezi bir yer tutar.',
+    'Aslan': 'Yaratıcı, sıcakkanlı ve ilham vericisin. Doğal bir karizman ve liderlik yeteneğin var.',
+    'Başak': 'Analitik, titiz ve hizmet odaklısın. Detayları görür, işleri mükemmelleştirmek için çalışırsın.',
+    'Terazi': 'Uyumlu, adaletli ve diplomatik bir karakterin var. İlişkilerde denge ve uyum arayışın hayatının merkezindedir.',
+    'Akrep': 'Tutkulu, derin ve dönüştürücü bir enerjin var. Yüzeysel şeyler sana yetmez, derinlik ararsın.',
+    'Yay': 'İyimser, maceracı ve özgür ruhluyum. Yeni deneyimlere, seyahate ve felsefi sorgulamalara açıksın.',
+    'Oğlak': 'Disiplinli, hırslı ve sorumluluk sahibisin. Uzun vadeli planlar yapar, hedeflerine adım adım ilerlersin.',
+    'Kova': 'Özgün, yenilikçi ve bağımsız bir ruhun var. Kalıpların dışında düşünür, kendi yolunu çizersin.',
+    'Balık': 'Duyarlı, yaratıcı ve şefkatlisin. Hayal gücün sınırsız, sanatsal ve ruhsal konulara yatkınlığın var.'
+  },
+  Mercury: {
+    'Koç': 'Zihnin hızlı çalışır, düşüncelerini doğrudan ifade edersin. Yeni fikirlere açık ama sabırsız olabilirsin.',
+    'Boğa': 'Düşüncelerinde pratik, sağduyulu ve metodiksin. Konuşman sakin ve güven vericidir.',
+    'İkizler': 'Zihnin hızlı, esnek ve meraklıdır. Konuşmayı, yazmayı ve bilgi alışverişini seversin.',
+    'Yengeç': 'Düşüncelerin duygularınla iç içedir. Sezgisel zekân güçlü, hafızan kuvvetlidir.',
+    'Aslan': 'Yaratıcı, etkileyici bir iletişim tarzın var. Düşüncelerini kendinden emin ifade edersin.',
+    'Başak': 'Analitik, keskin ve detay odaklı bir zihnin var. Kusursuz ifade ve düzenli düşünce yapın vardır.',
+    'Terazi': 'Dengeli, diplomatik ve adil bir iletişim tarzın var. Her konuyu farklı açılardan görürsün.',
+    'Akrep': 'Zihnin keskin, sorgulayıcı ve derindir. Söylenmeyenleri duyar, gizli anlamları keşfedersin.',
+    'Yay': 'Geniş görüşlü, iyimser ve felsefi düşünürsün. Büyük resmi görür, ezber bozan fikirler üretirsin.',
+    'Oğlak': 'Disiplinli, stratejik ve gerçekçi bir zihnin var. Tecrübe ve bilgiyi önemser, derinlemesine analiz yaparsın.',
+    'Kova': 'Özgün, yaratıcı ve ilerici bir zihnin var. Alışılmış kalıpları yıkar, yeni fikirler üretirsin.',
+    'Balık': 'Sezgisel, hayal gücü geniş ve yaratıcı bir zihnin var. Mantıktan çok sezgilerinle düşünürsün.'
+  },
+  Venus: {
+    'Koç': 'Aşkta cesur, tutkulu ve girişkensin. İlk adımı atmaktan çekinmez, heyecan ve macera ararsın.',
+    'Boğa': 'Aşkta sadık, tutarlı ve güvenilirsin. Fiziksel dokunuş ve duyusal zevkler senin için önemlidir.',
+    'İkizler': 'Aşkta zihinsel uyum ve iletişim çok önemlidir. Sohbet edebildiğin, fikir alışverişi yapabildiğin partnerler ararsın.',
+    'Yengeç': 'Aşkta şefkatli, koruyucu ve duygusal bağlılığa önem verirsin. Sevdiğine derin bir bağlılık duyarsın.',
+    'Aslan': 'Aşkta cömert, romantik ve tutkulusun. Partnerini yüceltir, ona değerli hissettirirsin.',
+    'Başak': 'Aşkta hizmet odaklı, titiz ve mükemmeliyetçisin. Sevdiğine pratik yollarla bakım vermek senin dilindir.',
+    'Terazi': 'Romantik, zarif ve uyumlusun. İlişkilerde denge ve karşılıklı saygı çok önemlidir.',
+    'Akrep': 'Aşkta yoğun, tutkulu ve dönüştürücüsün. Derin, anlamlı bağlar kurmak istersin.',
+    'Yay': 'Aşkta özgürlüğüne düşkün, maceracı ve iyimser bir yaklaşımın var.',
+    'Oğlak': 'Aşkta ciddi, sorumlu ve sadıksın. İlişkilerine uzun vadeli bakar, sağlam temeller üzerine kurmak istersin.',
+    'Kova': 'Aşkta özgür ve arkadaş canlısısın. Geleneksel kalıplara uymaz, kendi ilişki kurallarını yaratırsın.',
+    'Balık': 'Aşkta romantik, fedakar ve sınırsız bir şefkatle seversin. Ruhsal bir bağ kurmak istersin.'
+  },
+  Mars: {
+    'Koç': 'Enerjin yüksek, cesur ve atılgansın. Ne istersen doğrudan hedef alır ve harekete geçersin.',
+    'Boğa': 'Enerjini istikrarlı, kararlı ve dirençli kullanırsın. Sabırla hedeflerine ilerler, kolay pes etmezsin.',
+    'İkizler': 'Enerjin zihinseldir; fikirlerini hayata geçirmekte hızlısın. Aynı anda çok işle ilgilenirsin.',
+    'Yengeç': 'Duygusal motivasyonun yüksektir. Sevdiğin insanları korumak için güçlü bir enerjin var.',
+    'Aslan': 'Yaratıcı enerjin güçlü ve etkileyicidir. Liderlik etmek ve fark edilmek için çabalarsın.',
+    'Başak': 'Enerjini verimli, hassas ve düzenli kullanırsın. İşlerini titizlikle halletmek için çalışırsın.',
+    'Terazi': 'Enerjini uyum ve denge arayışında kullanırsın. Çatışmadan kaçınır, diplomatik bir mücadele tarzın var.',
+    'Akrep': 'Tutkulu, yoğun ve stratejik bir enerjin var. Hedeflerine ulaşmak için yılmadan çalışırsın.',
+    'Yay': 'Enerjin maceracı, iyimser ve heveslidir. Yeni ufuklara açılmak ve sınırları zorlamak için harekete geçersin.',
+    'Oğlak': 'Disiplinli, hırslı ve stratejik bir enerjin var. Hedeflerine adım adım ilerler, zorluklardan yılmazsın.',
+    'Kova': 'Özgün, bağımsız ve yenilikçi bir enerjin var. Alışılmış yöntemleri reddeder, kendi yolunu çizersin.',
+    'Balık': 'Enerjin sezgisel, yaratıcı ve akışkandır. Harekete geçmeden önce iç sesini dinlersin.'
+  },
+  Jupiter: {
+    'Koç': 'İyimserliğin ve cesaretin yüksektir. Yeni başlangıçlar yapma konusunda doğal bir yeteneğin var.',
+    'Boğa': 'Bolluk ve bereket seninle birliktedir. Maddi güvence ve konfor doğal olarak sana gelir.',
+    'İkizler': 'Öğrenme ve iletişim yeteneğin sınırsızdır. Bilgiye olan açlığın sayesinde çok alanda yetkinlik kazanırsın.',
+    'Yengeç': 'Duygusal zenginlik ve ait olma duygusu hayatında önemli yer tutar. Ailenden güç alırsın.',
+    'Aslan': 'Cömertlik, yaratıcılık ve liderlik yeteneklerin öne çıkar. Hayattan keyif alarak başarıya ulaşırsın.',
+    'Başak': 'Detaylara verdiğin önem ve çalışkanlığın sayesinde mükemmelliğe ulaşırsın. Hizmet etmek sana tatmin sağlar.',
+    'Terazi': 'Adalet, uyum ve ilişkiler hayatındaki şans alanlarıdır. Dengeli ilişkilerle hayatta ilerlersin.',
+    'Akrep': 'Dönüşüm ve keşif yeteneğin olağanüstüdür. Hayatın sırlarını çözme konusunda büyük başarılar elde edersin.',
+    'Yay': 'İyimserliğin ve bilgelik arayışın en yüksek seviyededir. Hayat senin için büyük bir öğrenme yolculuğudur.',
+    'Oğlak': 'Disiplinli çalışma ve uzun vadeli planlama sayesinde başarıya ulaşırsın. Sorumluluk almak sana şans getirir.',
+    'Kova': 'Özgün fikirlerin ve dostlukların sana başarı getirir. Yenilikçi vizyonun sayesinde kalıpları kırar, farklı başarılar elde edersin.',
+    'Balık': 'Merhametin, hayal gücün ve ruhsal derinliğin sınırsızdır. Sanat ve maneviyat en büyük şans alanlarındır.'
+  },
+  Saturn: {
+    'Koç': 'Cesaret ve bağımsızlık sınavlarından geçiyorsun. Kendi ayakların üzerinde durmayı öğreniyorsun.',
+    'Boğa': 'Maddi güvence ve istikrar konuları önemli derslerdir. Sabırla sağlam temeller inşa etmeyi öğrenirsin.',
+    'İkizler': 'Zihinsel disiplin ve odaklanma önemli derslerdir. Derinlemesine öğrenmeyi ve net düşünmeyi öğrenirsin.',
+    'Yengeç': 'Duygusal güvenlik ve aile konuları hayatının sınav alanlarıdır. Duygusal olgunluk kazanmayı öğrenirsin.',
+    'Aslan': 'Yaratıcılık ve kendini ifade konularında sınavlardan geçersin. Takdir edilmek için çaba göstermen gerekir.',
+    'Başak': 'Düzen, sağlık ve verimlilik hayatının ders alanlarıdır. Mükemmeliyetçiliğini dengelemeyi öğrenirsin.',
+    'Terazi': 'İlişkiler ve denge konuları önemli sınavlar getirir. Sağlıklı sınırlar koymayı zamanla öğrenirsin.',
+    'Akrep': 'Derin dönüşümler ve güç mücadeleleri hayatının dersleridir. Kontrolü bırakmayı öğrenirsin.',
+    'Yay': 'Sorumluluk ve özgürlük arasında denge kurmayı öğrenirsin. Gerçek bilgeliğe ulaşmak için sınavlardan geçersin.',
+    'Oğlak': 'Disiplin, sorumluluk ve başarı hayatının merkezindedir. En büyük derslerin bu alanlarda şekillenir.',
+    'Kova': 'Özgünlük ve toplumsal sorumluluk arasında denge kurmayı öğrenirsin. Kalıpları yıkarken sağlam temel oluşturman önemlidir.',
+    'Balık': 'Sınırlar ve ruhsallık arasında denge kurmayı öğrenirsin. Hayal dünyanla gerçeklik arasında sağlam bağlar kurman gerekir.'
+  },
+  Uranus: {
+    'Koç': 'Özgürlük ve bağımsızlık hayatında merkezi bir rol oynar. Alışılmış kalıpları yıkar, kendi yolunu açarsın.',
+    'Boğa': 'Maddi dünyada yenilikçi bir yaklaşımın var. Geleneksel değerleri sorgular, yeni finansal modeller keşfedersin.',
+    'İkizler': 'Zihinsel olarak sıra dışı ve yenilikçisin. İletişimde devrimci fikirlerinle fark yaratırsın.',
+    'Yengeç': 'Aile ve ev kavramlarına alışılmışın dışında bir yaklaşımın var. Köklerini yeniden tanımlama ihtiyacı duyarsın.',
+    'Aslan': 'Kendini ifade etme biçimin benzersiz ve sıra dışıdır. Yaratıcılığın kalıplara sığmaz.',
+    'Başak': 'Günlük rutinleri ve iş yapış biçimlerini sorgular, daha verimli yöntemler keşfedersin.',
+    'Terazi': 'İlişkilere yenilikçi bir yaklaşımın var. Geleneksel ilişki kalıplarını sorgulayan bir yapın vardır.',
+    'Akrep': 'Dönüşüm ve değişim konularında olağanüstü bir kapasiten var. Tabuları yıkmaktan çekinmezsin.',
+    'Yay': 'Özgürlük arayışın sınır tanımaz. Farklı kültürlere ve inançlara açık bir zihnin var.',
+    'Oğlak': 'Toplumsal yapıları ve otoriteyi sorgular, daha adil sistemler için çalışırsın.',
+    'Kova': 'Özgürlük, yenilik ve insanlık ideallerin en güçlü olduğu konumdadır. Vizyoner bir ruhun var.',
+    'Balık': 'Ruhsal ve sanatsal alanlarda sıra dışı yeteneklerin var. Sıradan algının ötesini görebilirsin.'
+  },
+  Neptune: {
+    'Koç': 'Hayallerini gerçekleştirmek için cesur ve girişkensin. İlham verici bir vizyonun var.',
+    'Boğa': 'Maddi dünyaya ruhsal bir perspektiften bakarsın. Sanat ve güzellik yoluyla derin tatmin bulursun.',
+    'İkizler': 'Sezgisel iletişim yeteneğin güçlüdür. Hayal gücünü kelimelere dökme konusunda yeteneklisin.',
+    'Yengeç': 'Duygusal sezgilerin son derece güçlüdür. Başkalarının duygularını kolayca hissedersin.',
+    'Aslan': 'Yaratıcı vizyonun ilham vericidir. Sanat ve yaratıcı ifade yoluyla kendini bulursun.',
+    'Başak': 'Hizmet ve şifa konularında ruhsal bir yaklaşımın var. Başkalarına yardım etmek için sezgilerini kullanırsın.',
+    'Terazi': 'İlişkilerde idealist ve romantik bir vizyonun var. Ruhsal bağ ve derin uyum ararsın.',
+    'Akrep': 'Ruhsal dönüşüm ve gizemli konulara derin bir ilgin var. Sezgilerin olağanüstü güçlüdür.',
+    'Yay': 'Ruhsal arayışın maceracı ve keşif doludur. Farklı inanç sistemlerine açıksın.',
+    'Oğlak': 'Ruhsal ve maddi dünyayı birleştirme yeteneğin var. Vizyonunu yapısal projelere dönüştürebilirsin.',
+    'Kova': 'Toplumsal idealler için ruhsal bir vizyonun var. Geleceği sezme yeteneğin güçlüdür.',
+    'Balık': 'Ruhsallık, sanat ve sezgilerin en güçlü olduğu konumdadır. Sınırsız bir hayal gücün var.'
+  },
+  Pluto: {
+    'Koç': 'Dönüşüm konularında cesur ve doğrudansın. Eski kalıpları yıkıp yeniden inşa edersin.',
+    'Boğa': 'Değerler ve maddi güvenlik konularında derin dönüşümler yaşarsın. Güçlü bir yenilenme kapasiten var.',
+    'İkizler': 'Düşünce kalıplarında derin dönüşümler yaşarsın. İletişim konularında sıra dışı bir gücün var.',
+    'Yengeç': 'Aile ve duygusal kökler konusunda derin psikolojik dönüşümlerden geçersin.',
+    'Aslan': 'Kendini ifade konularında radikal dönüşümler yaşarsın. Liderlik gücünü derinlemesine kullanırsın.',
+    'Başak': 'Sağlık ve iş konularında derin dönüşümler yaşarsın. İyileştirme gücün ve detaylara hâkimiyetin vardır.',
+    'Terazi': 'İlişkiler konularında dönüştürücü deneyimler yaşarsın. Adalet için güçlü bir tutkun var.',
+    'Akrep': 'Dönüşüm, güç ve derinlik konularında en güçlü konumundadır. Olağanüstü bir yenilenme kapasiten var.',
+    'Yay': 'İnanç sistemlerinde derin dönüşümler yaşarsın. Gerçeği arayışın tutkuludur.',
+    'Oğlak': 'Toplumsal yapılar ve kariyer konularında derin dönüşümler yaşarsın.',
+    'Kova': 'Toplumsal idealler konusunda dönüştürücü deneyimler yaşarsın. Sistemleri değiştirme gücün vardır.',
+    'Balık': 'Ruhsal ve bilinçaltı konularda derin dönüşümler yaşarsın. Kolektif bilinçle güçlü bir bağlantın var.'
+  }
+};
+
+const HOUSE_INTERP = {
+  1: 'Benlik, dış görünüş ve hayata yaklaşım tarzını yönetir. Yeni başlangıçlar ve kişisel kimlik alanıdır.',
+  2: 'Maddi kaynaklar, değer yargıları ve özgüveni temsil eder. Sahip olma duygusu bu evdedir.',
+  3: 'İletişim, yakın çevre, kardeşler ve kısa yolculukları yönetir. Zihinsel beceriler ve öğrenme alanıdır.',
+  4: 'Aile kökleri, ev, iç dünya ve duygusal temelleri temsil eder. Hayatın temel güvenlik alanıdır.',
+  5: 'Yaratıcılık, romantik aşk, çocuklar ve eğlence alanıdır. Kalbinin ve tutkularının evidir.',
+  6: 'Sağlık, günlük rutinler, iş ve hizmet etme alanıdır. Beden ve zihin disipliniyle ilgilidir.',
+  7: 'İlişkiler, ortaklıklar, evlilik ve açık düşmanları temsil eder. Dengeli ilişkiler kurma alanıdır.',
+  8: 'Dönüşüm, ortak kaynaklar, miras ve yaşamın gizemleridir. Derin psikolojik dönüşümlerin evidir.',
+  9: 'Felsefe, yüksek öğrenim, uzun yolculuklar ve inanç sistemleridir. Anlam arayışının evidir.',
+  10: 'Kariyer, toplumsal statü ve hayattaki amacı temsil eder. En yüksek potansiyelinin evidir.',
+  11: 'Arkadaşlık, sosyal çevre, idealler ve umutların evidir. Toplumsal bağlantılar alanıdır.',
+  12: 'Bilinçaltı, yalnızlık, gizli düşmanlar ve ruhsal büyümedir. İçsel huzur arayışının evidir.'
+};
+
+const ELEMENT_MAP = { 'Koç': 'Ateş', 'Aslan': 'Ateş', 'Yay': 'Ateş', 'Boğa': 'Toprak', 'Başak': 'Toprak', 'Oğlak': 'Toprak', 'İkizler': 'Hava', 'Terazi': 'Hava', 'Kova': 'Hava', 'Yengeç': 'Su', 'Akrep': 'Su', 'Balık': 'Su' };
+const ELEMENT_DESC = { 'Ateş': 'Ateş elementi baskın — doğal bir cesaret, ilham ve liderlik enerjin var. Hayata karşı coşkulu ve girişkensin.', 'Toprak': 'Toprak elementi baskın — pratiklik, sabır ve sağlam bir duruşun var. Maddi dünyada güçlü ve güvenilirsin.', 'Hava': 'Hava elementi baskın — zihinsel yeteneklerin, iletişim becerin ve sosyal ilişkilerin ön planda. Fikir insanısın.', 'Su': 'Su elementi baskın — derin bir sezgisel zekân, duygusal zenginliğin ve empati yeteneğin var.' };
+const MODAL_MAP = { 'Koç': 'Öncü', 'Yengeç': 'Öncü', 'Terazi': 'Öncü', 'Oğlak': 'Öncü', 'Boğa': 'Sabit', 'Aslan': 'Sabit', 'Akrep': 'Sabit', 'Kova': 'Sabit', 'İkizler': 'Değişken', 'Başak': 'Değişken', 'Yay': 'Değişken', 'Balık': 'Değişken' };
+const MODAL_DESC = { 'Öncü': 'Öncü nitelik baskın — hayata atılgan ve girişken bir ruhla yaklaşıyorsun. Başlatıcı ve harekete geçirici bir enerjin var.', 'Sabit': 'Sabit nitelik baskın — kararlı, dirençli ve istikrarlısın. Başladığın işleri tamamlar, zorluklara dayanıklısın.', 'Değişken': 'Değişken nitelik baskın — uyumlu, esnek ve çok yönlüsün. Değişime hızlı adapte olursun.' };
+
+// ====== TIMEZONE ======
+function lastSunday(year, monthIdx) {
+  const lastDay = new Date(year, monthIdx + 1, 0).getDate();
+  const lastWeekday = new Date(year, monthIdx, lastDay).getDay();
+  return lastDay - lastWeekday;
+}
+
+function turkeyOffset(year, monthIdx, day) {
+  if (year >= 2016) return 3;
+  const dstStart = lastSunday(year, 2); // March
+  const dstEndMonth = year < 1996 ? 8 : 9; // Sep or Oct
+  const dstEnd = lastSunday(year, dstEndMonth);
+  const val = monthIdx * 100 + day;
+  const startVal = 2 * 100 + dstStart;
+  const endVal = dstEndMonth * 100 + dstEnd;
+  if (val >= startVal && val < endVal) return 3;
+  return 2;
+}
+
+// ====== MAIN CALCULATION ======
+document.getElementById('calc-btn').addEventListener('click', () => {
+  const name = document.getElementById('name').value.trim() || 'İsimsiz';
+  const dateStr = document.getElementById('birth-date').value;
+  const timeStr = document.getElementById('birth-time').value;
+  const lat = parseFloat(document.getElementById('lat').value);
+  const lon = parseFloat(document.getElementById('lon').value);
+
+  if (!dateStr || isNaN(lat) || isNaN(lon)) {
+    document.getElementById('form-card').scrollIntoView({ behavior: 'smooth' });
+    return;
+  }
+
+  const [y, m, d] = dateStr.split('-').map(Number);
+  let h = 12, mi = 0;
+  if (timeStr) {
+    const [hh, mm] = timeStr.split(':').map(Number);
+    h = hh; mi = mm;
+  }
+
+  const tzMode = document.getElementById('tz-select').value;
+  let tzOffset = 0;
+  if (tzMode === 'auto') tzOffset = turkeyOffset(y, m - 1, d);
+  else tzOffset = parseInt(tzMode);
+
+  const utcDate = new Date(Date.UTC(y, m - 1, d, h - tzOffset, mi));
+  const uy = utcDate.getUTCFullYear();
+  const um = utcDate.getUTCMonth() + 1;
+  const ud = utcDate.getUTCDate();
+  const uh = utcDate.getUTCHours() + utcDate.getUTCMinutes() / 60;
+  const date = utcDate;
+  const jd = jdFromYMD(uy, um, ud, uh);
+
+  const time = Astronomy.MakeTime(date);
+  const eps = calcObliquity(jd);
+  const gmst = calcGMST(jd);
+  const lst = (gmst + lon) / 15; // hours
+  const ramcDeg = lst * 15;
+  const ascDeg = calcAscendant(ramcDeg, lat, eps);
+  const mcDeg = calcMC(ramcDeg, eps);
+
+  const positions = {};
+  for (const p of PLANETS) {
+    try {
+      const lon = getPlanetLon(p.key, time);
+      const z = zodiacFromDeg(lon);
+      positions[p.key] = { ...p, lon, z };
+    } catch { positions[p.key] = { ...p, lon: 0, z: zodiacFromDeg(0) }; }
+  }
+
+  const houses = calcHouses(ascDeg);
+  const aspects = calcAspects(positions);
+
+  // Assign houses to planets
+  const planetHouses = {};
+  for (const key of Object.keys(positions)) {
+    for (let i = 0; i < 12; i++) {
+      const next = (i + 1) % 12;
+      const houseStart = houses[i];
+      const houseEnd = (i < 11) ? houses[i + 1] : houses[0] + 360;
+      let pLon = positions[key].lon;
+      if (i === 11 && pLon < houses[0]) pLon += 360;
+      if (pLon >= houseStart && pLon < houseEnd) {
+        planetHouses[key] = i + 1;
+        break;
+      }
+    }
+    if (!planetHouses[key]) planetHouses[key] = 1;
+  }
+
+  const sunSign = zodiacFromDeg(positions.Sun.lon).tr;
+  const moonSign = zodiacFromDeg(positions.Moon.lon).tr;
+  const risingSign = zodiacFromDeg(ascDeg).tr;
+
+  renderResults(name, dateStr, timeStr || 'Belirtilmemiş', positions, planetHouses, houses, aspects, ascDeg, mcDeg, sunSign, moonSign, risingSign, lat, lon);
+});
+
+// ====== RENDER ======
+function renderResults(name, dateStr, timeStr, positions, planetHouses, houses, aspects, ascDeg, mcDeg, sunSign, moonSign, risingSign, lat, lon) {
+  document.getElementById('result-section').classList.add('show');
+  document.getElementById('result-name').textContent = name + ' — Doğum Haritası';
+  document.getElementById('result-meta').textContent = dateStr + ' · ' + timeStr + ' · ' + lat.toFixed(2) + '°N, ' + lon.toFixed(2) + '°E';
+
+  const ascZ = zodiacFromDeg(ascDeg);
+  const mcZ = zodiacFromDeg(mcDeg);
+
+  const houseNames = ['Benlik', 'Maddiyat', 'İletişim', 'Aile', 'Yaratıcılık', 'Sağlık', 'İlişkiler', 'Dönüşüm', 'Felsefe', 'Kariyer', 'Arkadaşlık', 'Bilinçaltı'];
+
+  const analysis = [];
+
+  // 1. Giriş
+  analysis.push(`<p>${name}, bu analiz doğduğun anın — ${dateStr} ${timeStr ? timeStr + ' ' : ''}— gökyüzü haritasına göre hazırlandı. Gezegenlerin burçlardaki konumları, evlere yerleşimleri ve aralarındaki açılar, karakter yapını ve hayatındaki potansiyel odak alanlarını gösteriyor. Bu bilgileri kendini daha iyi tanımak ve içsel potansiyelini keşfetmek için bir araç olarak kullanabilirsin.</p>`);
+
+  // 2. Büyük Üçlü
+  analysis.push(`<p><strong>🌅 Dış dünyaya yansıttığın halin — Yükselen ${risingSign}</strong><br>${RISING_INTERP[risingSign] || ''}</p>`);
+  analysis.push(`<p><strong>☀️ Temel karakterin ve motivasyonun — Güneş ${sunSign}</strong><br>${SUN_INTERP[sunSign] || ''}</p>`);
+  analysis.push(`<p><strong>🌙 İç dünyan ve duygusal tepkilerin — Ay ${moonSign}</strong><br>${MOON_INTERP[moonSign] || ''}</p>`);
+
+  // 3. Element ve Nitelik Dağılımı
+  const elementCount = { Ateş: 0, Toprak: 0, Hava: 0, Su: 0 };
+  const modalCount = { Öncü: 0, Sabit: 0, Değişken: 0 };
+  for (const p of PLANETS) {
+    const sign = positions[p.key]?.z?.tr;
+    if (sign && ELEMENT_MAP[sign]) elementCount[ELEMENT_MAP[sign]]++;
+    if (sign && MODAL_MAP[sign]) modalCount[MODAL_MAP[sign]]++;
+  }
+  const dominantElement = Object.entries(elementCount).sort((a, b) => b[1] - a[1])[0];
+  const dominantModal = Object.entries(modalCount).sort((a, b) => b[1] - a[1])[0];
+  analysis.push('<p><strong>🔥 Element ve Nitelik Dağılımı</strong></p>');
+  analysis.push(`<p style="margin-bottom:4px;font-size:15px">Ateş ${'●'.repeat(elementCount.Ateş)}${'○'.repeat(10 - elementCount.Ateş)} ${elementCount.Ateş}/10 · Toprak ${'●'.repeat(elementCount.Toprak)}${'○'.repeat(10 - elementCount.Toprak)} ${elementCount.Toprak}/10 · Hava ${'●'.repeat(elementCount.Hava)}${'○'.repeat(10 - elementCount.Hava)} ${elementCount.Hava}/10 · Su ${'●'.repeat(elementCount.Su)}${'○'.repeat(10 - elementCount.Su)} ${elementCount.Su}/10</p>`);
+  if (dominantElement && dominantElement[1] >= 3) {
+    analysis.push(`<p>${ELEMENT_DESC[dominantElement[0]] || ''}</p>`);
+  }
+  analysis.push(`<p style="margin-bottom:4px;font-size:15px">Öncü ${'●'.repeat(modalCount.Öncü)}${'○'.repeat(10 - modalCount.Öncü)} ${modalCount.Öncü}/10 · Sabit ${'●'.repeat(modalCount.Sabit)}${'○'.repeat(10 - modalCount.Sabit)} ${modalCount.Sabit}/10 · Değişken ${'●'.repeat(modalCount.Değişken)}${'○'.repeat(10 - modalCount.Değişken)} ${modalCount.Değişken}/10</p>`);
+  if (dominantModal && dominantModal[1] >= 4) {
+    analysis.push(`<p>${MODAL_DESC[dominantModal[0]] || ''}</p>`);
+  }
+
+  // 4. Gezegenlerin Burç Yorumları (kişiselden sosyale)
+  analysis.push('<p><strong>📊 Gezegenlerin Burçlardaki Konumları ve Anlamları</strong></p>');
+  const planetOrder = ['Sun', 'Moon', 'Mercury', 'Venus', 'Mars', 'Jupiter', 'Saturn', 'Uranus', 'Neptune', 'Pluto'];
+  for (const key of planetOrder) {
+    const p = PLANETS.find(x => x.key === key);
+    if (!p || !positions[key]) continue;
+    const sign = positions[key].z.tr;
+    const interp = PLANET_SIGN_INTERP[key]?.[sign];
+    if (interp) {
+      analysis.push(`<p style="margin-bottom:8px"><strong>${p.emoji} ${p.tr} — ${positions[key].z.emoji} ${sign}</strong><br>${interp}</p>`);
+    }
+  }
+
+  // 5. Ev Yerleşimleri
+  analysis.push('<p><strong>🏠 Gezegenlerin Evlere Yerleşimi ve Hayat Alanların</strong></p>');
+  for (const p of PLANETS) {
+    const h = planetHouses[p.key];
+    if (!h) continue;
+    analysis.push(`<p style="margin-bottom:8px">${p.emoji} <strong>${p.tr}</strong> → ${h}. Ev (${houseNames[h-1]})<br><span style="color:var(--ink-soft);font-size:14px">${HOUSE_INTERP[h] || ''}</span></p>`);
+  }
+
+  // Yoğun evler
+  const planetInHouse = {};
+  for (const [key, h] of Object.entries(planetHouses)) {
+    if (!planetInHouse[h]) planetInHouse[h] = [];
+    planetInHouse[h].push(positions[key]?.tr || key);
+  }
+  const houseFocus = Object.entries(planetInHouse)
+    .filter(([h, planets]) => planets.length >= 2)
+    .sort((a, b) => b[1].length - a[1].length);
+  if (houseFocus.length > 0) {
+    analysis.push('<p><strong>📌 En yoğun hayat alanların (birden çok gezegen):</strong></p>');
+    for (const [h, planets] of houseFocus) {
+      analysis.push(`<p style="margin-bottom:4px;margin-left:12px">• ${h}. Ev — ${houseNames[h-1]}: <strong>${planets.join(', ')}</strong> — bu evde birden çok gezegen olduğu için hayatının bu alanı daha yoğun ve hareketli.</p>`);
+    }
+  }
+
+  // 6. Açılar
+  const tightAspects = aspects.filter(a => a.orb < 4);
+  if (tightAspects.length > 0) {
+    analysis.push('<p><strong>⚡ Güçlü Gezegen Açıları (dar açılar — en belirgin etkiler)</strong></p>');
+    const angleDetails = {
+      0: 'Bu iki gezegenin enerjisi birleşiyor, güçlerini yoğunlaştırıyor. Doğal bir yetenek veya güçlü bir odak noktası oluşturuyor.',
+      60: 'Doğal bir yetenek ve rahatlık alanı. Bu iki enerji birbirini destekliyor, hayatında kolaylıkla ve uyum içinde çalışıyor.',
+      90: 'Bu alanda içsel bir gerilim ve meydan okuma var. Ancak bu gerilim, seni büyütmek ve geliştirmek için önemli bir fırsat.',
+      120: 'Akıcı ve doğal bir yetenek. Bu enerjiler hayatında uyum içinde ve destekleyici bir şekilde çalışıyor, sana kolaylık sağlıyor.',
+      180: 'Karşıt güçleri dengelemeyi öğreniyorsun. Bu alan, ilişkilerinde farkındalık ve denge kurmanı sağlayan önemli bir dinamiği temsil ediyor.'
+    };
+    for (const a of tightAspects) {
+      const detail = angleDetails[a.type.angle] || ASPECT_INTERP[a.type.name] || '';
+      analysis.push(`<p style="margin-bottom:8px;margin-left:12px">${a.p1Emoji || ''} <strong>${a.p1Tr}</strong> — ${a.p2Emoji || ''} <strong>${a.p2Tr}</strong> (${a.type.symbol} ${a.type.name}, açı: ${a.exact}°, orb: ${a.orb}°)<br><span style="color:var(--ink-soft);font-size:14px">${detail}</span></p>`);
+    }
+  }
+
+  // 7. Yükselen ve MC
+  analysis.push(`<p><strong>🏛 Hayat yolculuğunun temel direkleri</strong><br>Yükselen burcun <strong>${risingSign}</strong> (${ascZ.emoji}) ile dış dünyaya kendini nasıl ifade ettiğin, MC (Midheaven) burcun <strong>${zodiacFromDeg(mcDeg).tr}</strong> ile de kariyer ve toplumsal rolün arasındaki bağlantıyı kuruyorsun. Yükselenin hayata karşı tutumunun temel rengini belirlerken, MC'n zamanla ulaşmak istediğin toplumsal konumu ve başarı potansiyelini gösterir. Bu iki nokta, kişisel gelişim yolculuğunun yatay ve dikey eksenlerini oluşturur.</p>`);
+
+  // 8. Özet kapanış
+  const totalPlanets = Object.keys(positions).length;
+  const earthCount = elementCount.Toprak + elementCount.Hava;
+  analysis.push(`<p><strong>🎯 Genel Değerlendirme</strong><br>Haritanda ${totalPlanets} gezegenin dağılımına baktığımızda, ${dominantElement ? dominantElement[0] + ' elementi (' + dominantElement[1] + '/10) diğerlerine göre öne çıkıyor' : 'elementler arasında belirgin bir dağılım var'}. ${houseFocus.length > 0 ? 'En çok gezegen barındıran' + (houseFocus[0] ? ' ' + houseFocus[0][0] + '. ev (' + houseNames[houseFocus[0][0]-1] + '), hayatının en dinamik alanlarından biri olduğunu gösteriyor.' : '') : ''} ${tightAspects.length > 0 ? 'Dar açılı ' + tightAspects.length + ' gezegen çifti, karakterinde belirgin ve güçlü dinamikler olduğunu işaret ediyor.' : ''}</p>`);
+
+  analysis.push(`<p><em>Not: Bu analiz, doğum haritanın potansiyellerini gösterir. Hiçbir şey kaderini belirlemez. Önemli olan, bu bilgileri kendini daha iyi tanımak için bir araç olarak kullanman. Gökyüzü eğilimleri gösterir, seçimlerin ve özgür iraden her zaman en belirleyici güçtür.</em></p>`);
+
+  document.getElementById('analysis-text').innerHTML = analysis.join('\n');
+
+  document.getElementById('result-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ====== INIT ======
+document.getElementById('birth-date').valueAsDate = new Date();
+document.getElementById('birth-time').value = '12:00';
+</script>
+</body>
+</html>
