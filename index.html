@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sudoku Generator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>🧩 Sudoku Generator</h1>
+
+        <button id="themeBtn">☀️ Light Mode</button>
+
+        <!-- Kontroller -->
+        <div class="controls">
+            <label>Sayfa başına puzzle:</label>
+            <select id="puzzleCount">
+                <option value="1">1 Puzzle</option>
+                <option value="2">2 Puzzle</option>
+                <option value="4">4 Puzzle</option>
+                <option value="6">6 Puzzle</option>
+            </select>
+            <label>Zorluk:</label>
+            <select id="difficulty">
+                <option value="easy">Kolay</option>
+                <option value="medium">Orta</option>
+                <option value="hard">Zor</option>
+                <option value="expert">Uzman</option>
+            </select>
+        </div>
+
+        <div class="controls">
+            <button id="generateBtn">Yeni Puzzle Üret</button>
+            <button id="solveBtn">Çözümü Göster</button>
+            <button id="hintBtn">💡 İpucu</button>
+            <button id="newGameBtn">🔄 Yeni Oyun</button>
+            <button id="pdfBtn">PDF İndir</button>
+            <button id="saveBtn">💾 Kaydet</button>
+            <button id="loadBtn">📂 Yükle</button>
+        </div>
+
+        <!-- Oyun bilgisi -->
+        <div class="game-info">
+            <div class="timer">⏱️ <span id="timer">00:00</span></div>
+            <div class="mistakes">❌ Hata: <span id="mistakeCount">0</span> / 3</div>
+            <div class="hints">💡 İpucu: <span id="hintCount">3</span></div>
+        </div>
+
+        <!-- Sudoku tahtası -->
+        <div class="board" id="board"></div>
+
+        <!-- Numpad -->
+        <div class="numpad" id="numpad">
+            <button class="num-btn" data-num="1">1</button>
+            <button class="num-btn" data-num="2">2</button>
+            <button class="num-btn" data-num="3">3</button>
+            <button class="num-btn" data-num="4">4</button>
+            <button class="num-btn" data-num="5">5</button>
+            <button class="num-btn" data-num="6">6</button>
+            <button class="num-btn" data-num="7">7</button>
+            <button class="num-btn" data-num="8">8</button>
+            <button class="num-btn" data-num="9">9</button>
+            <button class="num-btn delete-btn" data-num="0">✕ Sil</button>
+        </div>
+
+        <!-- Skor tablosu -->
+        <div class="score-table">
+            <h3>🏆 En İyi Skorlar</h3>
+            <table>
+                <tr>
+                    <td>Kolay</td>
+                    <td id="score_easy">--:--</td>
+                </tr>
+                <tr>
+                    <td>Orta</td>
+                    <td id="score_medium">--:--</td>
+                </tr>
+                <tr>
+                    <td>Zor</td>
+                    <td id="score_hard">--:--</td>
+                </tr>
+                <tr>
+                    <td>Uzman</td>
+                    <td id="score_expert">--:--</td>
+                </tr>
+            </table>
+        </div>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="sudoku.js"></script>
+</body>
+</html>
