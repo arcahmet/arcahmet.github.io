@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bioritm Grafiği</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: linear-gradient(145deg, #fef9f0 0%, #f5f0e8 100%);
+    color: #2c2c2c;
+    min-height: 100vh;
+    padding: 40px 16px;
+    display: flex;
+    justify-content: center;
+}
+.container { max-width: 780px; width: 100%; }
+.card {
+    background: rgba(255,255,255,0.75);
+    backdrop-filter: blur(12px);
+    border-radius: 24px;
+    padding: 36px 32px;
+    box-shadow: 0 2px 40px rgba(0,0,0,0.06);
+    border: 1px solid rgba(255,255,255,0.5);
+}
+h1 {
+    font-size: clamp(1.6rem, 4vw, 2.2rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+h1 span { background: #fde7d8; padding: 4px 14px; border-radius: 40px; font-size: 0.8rem; font-weight: 500; color: #c06a3e; }
+.intro {
+    margin-top: 20px;
+    padding: 20px 0;
+    border-top: 1px solid rgba(0,0,0,0.06);
+    border-bottom: 1px solid rgba(0,0,0,0.06);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: #555;
+}
+.intro p { grid-column: 1 / -1; }
+.cycle-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.cycle-info .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 8px; }
+.cycle-info .label { font-weight: 600; color: #2c2c2c; font-size: 13px; }
+.cycle-info .period { font-size: 12px; color: #888; }
+.picker-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin: 24px 0;
+}
+.picker-row label { font-weight: 500; font-size: 14px; color: #555; }
+.picker-row input[type="date"] {
+    padding: 10px 16px;
+    border-radius: 12px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+    background: #fff;
+    color: #2c2c2c;
+    outline: none;
+    font-family: inherit;
+    transition: border-color 0.2s;
+}
+.picker-row input[type="date"]:focus { border-color: #c06a3e; }
+.btn {
+    padding: 10px 28px;
+    border-radius: 12px;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    background: #c06a3e;
+    color: #fff;
+    transition: all 0.2s;
+    font-family: inherit;
+}
+.btn:hover { background: #a85932; transform: translateY(-1px); }
+.btn-outline {
+    background: transparent;
+    border: 1px solid #ddd;
+    color: #555;
+}
+.btn-outline:hover { border-color: #c06a3e; color: #c06a3e; background: transparent; }
+.chart-wrap {
+    position: relative;
+    width: 100%;
+    margin: 16px 0 8px;
+}
+.chart-wrap canvas {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 780 / 280;
+    display: block;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.5);
+}
+.chart-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    color: #999;
+    padding: 0 4px;
+    margin-top: 4px;
+}
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin: 20px 0;
+}
+.stat-card {
+    background: rgba(255,255,255,0.6);
+    border-radius: 16px;
+    padding: 18px;
+    text-align: center;
+    border: 1px solid rgba(0,0,0,0.04);
+}
+.stat-card .stat-label { font-size: 12px; color: #888; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+.stat-card .stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 6px 0 4px;
+    font-variant-numeric: tabular-nums;
+}
+.stat-card .stat-phase { font-size: 12px; color: #888; }
+.stat-physical .stat-value { color: #e07050; }
+.stat-emotional .stat-value { color: #4a8fc0; }
+.stat-intellectual .stat-value { color: #8b6fb0; }
+.day-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #888;
+    margin-top: 12px;
+}
+.day-indicator strong { color: #2c2c2c; font-weight: 600; }
+.info-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 12px;
+}
+.info-card {
+    background: rgba(255,255,255,0.5);
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid rgba(0,0,0,0.04);
+}
+.info-card h4 { font-size: 13px; font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+.info-card p { font-size: 13px; color: #666; line-height: 1.6; }
+.info-card .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+footer {
+    text-align: center;
+    font-size: 12px;
+    color: #bbb;
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(0,0,0,0.04);
+}
+footer a { color: #c06a3e; text-decoration: none; }
+@media (max-width: 640px) {
+    .card { padding: 24px 16px; }
+    .stats { grid-template-columns: 1fr; }
+    .info-cards { grid-template-columns: 1fr; }
+    .intro { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <h1>🌊 Bioritm <span>nedir?</span></h1>
+
+        <div class="intro">
+            <p>
+                Bioritm teorisi, 19. yüzyıl sonlarında Wilhelm Fliess ve Hermann Swoboda
+                tarafından geliştirilen, insan yaşamının üç temel döngüsel ritimden
+                etkilendiğini öne süren bir yaklaşımdır. Doğum anından itibaren başlayan
+                bu dalgalar, fiziksel, duygusal ve zihinsel durumumuzu periyodik olarak
+                etkiler.
+            </p>
+            <div class="cycle-info">
+                <span class="dot" style="background:#e07050"></span>
+                <span class="label">Fiziksel</span>
+                <span class="period">23 günlük döngü — güç, dayanıklılık, enerji</span>
+            </div>
+            <div class="cycle-info">
+                <span class="dot" style="background:#4a8fc0"></span>
+                <span class="label">Duygusal</span>
+                <span class="period">28 günlük döngü — ruh hali, yaratıcılık, hassasiyet</span>
+            </div>
+            <div class="cycle-info">
+                <span class="dot" style="background:#8b6fb0"></span>
+                <span class="label">Zihinsel</span>
+                <span class="period">33 günlük döngü — odaklanma, mantık, hafıza</span>
+            </div>
+            <div style="grid-column:1/-1;font-size:13px;color:#999;margin-top:-8px">
+                Her döngü sinüs dalgası şeklinde ilerler: pozitif bölge (yüksek performans),
+                negatif bölge (düşük performans) ve kritik günler (sıfır geçişi — dalgalanma).
+            </div>
+        </div>
+
+        <div class="picker-row">
+            <label for="birthDate">Doğum Tarihi</label>
+            <input type="date" id="birthDate">
+            <button class="btn" id="todayBtn">📅 Bugün</button>
+            <button class="btn btn-outline" id="prevBtn">← Önceki</button>
+            <button class="btn btn-outline" id="nextBtn">Sonraki →</button>
+        </div>
+
+        <div class="chart-wrap">
+            <canvas id="chart" width="780" height="280"></canvas>
+        </div>
+        <div class="chart-labels">
+            <span>−15 gün</span>
+            <span>−10</span>
+            <span>−5</span>
+            <span>Bugün</span>
+            <span>+5</span>
+            <span>+10</span>
+            <span>+15 gün</span>
+        </div>
+
+        <div class="day-indicator" id="dayIndicator"></div>
+
+        <div class="stats" id="stats"></div>
+
+        <div class="info-cards">
+            <div class="info-card">
+                <h4><span class="dot" style="background:#e07050"></span> Fiziksel</h4>
+                <p>Güç, dayanıklılık, bağışıklık ve fiziksel performans. Yükselişteyken spor yapmak, seyahat etmek ve fiziksel aktiviteler için idealdir.</p>
+            </div>
+            <div class="info-card">
+                <h4><span class="dot" style="background:#4a8fc0"></span> Duygusal</h4>
+                <p>Ruh hali, yaratıcılık, sezgi ve sosyal duyarlılık. Pozitif bölgedeyken iletişim ve sanatsal çalışmalar için verimli bir dönemdir.</p>
+            </div>
+            <div class="info-card">
+                <h4><span class="dot" style="background:#8b6fb0"></span> Zihinsel</h4>
+                <p>Odaklanma, mantıksal düşünme, hafıza ve öğrenme. Zirvedeyken sınav, analiz ve stratejik kararlar için en uygun zamandır.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        Bioritm grafikleri eğlence ve farkındalık amaçlıdır, tıbbi bir geçerliliği yoktur. —
+        <a href="https://arcahmet.github.io">arcahmet</a>
+    </footer>
+</div>
+
+<script>
+const CYCLES = [
+    { key: 'physical',  label: 'Fiziksel', period: 23, color: '#e07050' },
+    { key: 'emotional', label: 'Duygusal', period: 28, color: '#4a8fc0' },
+    { key: 'intellectual', label: 'Zihinsel', period: 33, color: '#8b6fb0' },
+];
+
+let currentDate = new Date();
+let birthDate = null;
+
+function daysBetween(a, b) {
+    const ms = b.getTime() - a.getTime();
+    return Math.floor(ms / (1000 * 60 * 60 * 24));
+}
+
+function biorhythmValue(birth, target, period) {
+    const days = daysBetween(birth, target);
+    return Math.sin(2 * Math.PI * days / period);
+}
+
+function formatDate(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+}
+
+function formatDateTR(date) {
+    const months = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+    return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
+}
+
+function phaseName(value, prev) {
+    const rising = value > prev;
+    const abs = Math.abs(value);
+    if (abs > 0.5) {
+        if (value > 0) return rising ? '↗ Yükselen Zirve' : '↗ Zirve';
+        return rising ? '↘ Düşüş' : '↘ Dip';
+    }
+    return rising ? '↗ Yükseliş' : '↘ Düşüş';
+}
+
+function drawChart() {
+    if (!birthDate) return;
+    const canvas = document.getElementById('chart');
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    const pad = { top: 20, bottom: 20, left: 0, right: 0 };
+    const chartW = W - pad.left - pad.right;
+    const chartH = H - pad.top - pad.bottom;
+    const midY = pad.top + chartH / 2;
+    const daysRange = 30;
+    const centerDay = daysBetween(birthDate, currentDate);
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Grid lines
+    ctx.strokeStyle = 'rgba(0,0,0,0.06)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i <= 4; i++) {
+        const y = pad.top + (chartH / 4) * i;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(W - pad.right, y);
+        ctx.stroke();
+    }
+
+    // Zero line (more visible)
+    ctx.strokeStyle = 'rgba(0,0,0,0.12)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, midY);
+    ctx.lineTo(W - pad.right, midY);
+    ctx.stroke();
+
+    // Today vertical line
+    const todayX = pad.left + (chartW / 2);
+    ctx.strokeStyle = 'rgba(192, 106, 62, 0.3)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(todayX, pad.top);
+    ctx.lineTo(todayX, pad.top + chartH);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    const todayLabel = formatDateTR(currentDate);
+    ctx.fillStyle = '#c06a3e';
+    ctx.font = '11px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(todayLabel, todayX, pad.top + chartH + 16);
+
+    // Draw cycles
+    CYCLES.forEach((cycle, ci) => {
+        const alpha = 0.85 - ci * 0.03;
+        ctx.strokeStyle = cycle.color;
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        let prevVal = null;
+
+        for (let px = 0; px <= chartW; px++) {
+            const dayOffset = (px / chartW) * daysRange - daysRange / 2;
+            const day = centerDay + dayOffset;
+            const targetDate = new Date(birthDate);
+            targetDate.setDate(birthDate.getDate() + day);
+
+            const val = -biorhythmValue(birthDate, targetDate, cycle.period);
+            const x = pad.left + px;
+            const y = midY + val * (chartH / 2.6);
+
+            if (px === 0) ctx.moveTo(x, y);
+            else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+
+        // Today value dot
+        const todayVal = -biorhythmValue(birthDate, currentDate, cycle.period);
+        const dotY = midY + todayVal * (chartH / 2.6);
+        ctx.fillStyle = cycle.color;
+        ctx.beginPath();
+        ctx.arc(todayX, dotY, 5, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    });
+
+    updateStats();
+}
+
+function updateStats() {
+    if (!birthDate) return;
+    const prevDate = new Date(currentDate);
+    prevDate.setDate(prevDate.getDate() - 1);
+
+    const stats = document.getElementById('stats');
+    stats.innerHTML = '';
+    const totalDays = daysBetween(birthDate, currentDate);
+
+    document.getElementById('dayIndicator').innerHTML =
+        `Doğumdan bu yana <strong>${totalDays.toLocaleString('tr')}</strong> gün`;
+
+    CYCLES.forEach(cycle => {
+        const val = biorhythmValue(birthDate, currentDate, cycle.period);
+        const prevVal = biorhythmValue(birthDate, prevDate, cycle.period);
+        const pct = Math.round(val * 100);
+        const card = document.createElement('div');
+        card.className = `stat-card stat-${cycle.key}`;
+        card.innerHTML = `
+            <div class="stat-label">${cycle.label}</div>
+            <div class="stat-value">%${Math.abs(pct)}</div>
+            <div class="stat-phase">${phaseName(val, prevVal)}</div>
+        `;
+        stats.appendChild(card);
+    });
+}
+
+function updateDateDisplay() {
+    document.getElementById('birthDate').value = formatDate(birthDate);
+    const target = formatDateTR(currentDate);
+    drawChart();
+}
+
+document.getElementById('birthDate').addEventListener('change', (e) => {
+    const parts = e.target.value.split('-');
+    if (parts.length === 3) {
+        birthDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+        currentDate = new Date();
+        updateDateDisplay();
+    }
+});
+
+document.getElementById('todayBtn').addEventListener('click', () => {
+    currentDate = new Date();
+    updateDateDisplay();
+});
+
+document.getElementById('prevBtn').addEventListener('click', () => {
+    currentDate.setDate(currentDate.getDate() - 1);
+    updateDateDisplay();
+});
+
+document.getElementById('nextBtn').addEventListener('click', () => {
+    currentDate.setDate(currentDate.getDate() + 1);
+    updateDateDisplay();
+});
+
+// Initialize: set default birth date to 30 years ago
+const defaultBirth = new Date();
+defaultBirth.setFullYear(defaultBirth.getFullYear() - 30);
+birthDate = defaultBirth;
+document.getElementById('birthDate').value = formatDate(birthDate);
+drawChart();
+</script>
+</body>
+</html>

@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adam Asmaca</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: linear-gradient(145deg, #fef9f0 0%, #f5f0e8 100%);
+    color: #2c2c2c;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 40px 16px;
+}
+.container { max-width: 560px; width: 100%; display: flex; flex-direction: column; gap: 20px; }
+.card {
+    background: rgba(255,255,255,0.75);
+    backdrop-filter: blur(12px);
+    border-radius: 24px;
+    padding: 32px 28px;
+    box-shadow: 0 2px 40px rgba(0,0,0,0.06);
+    border: 1px solid rgba(255,255,255,0.5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+h1 { font-size: 1.5rem; font-weight: 600; letter-spacing: -0.02em; }
+h1 span { background: #fde7d8; padding: 2px 12px; border-radius: 40px; font-size: 0.8rem; font-weight: 500; color: #c06a3e; }
+canvas { width: 100%; max-width: 280px; aspect-ratio: 1; display: block; border-radius: 12px; background: rgba(255,255,255,0.4); }
+.word-display {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 8px;
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+    min-height: 3rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.hint { font-size: 13px; color: #888; }
+.wrong-letters { font-size: 14px; color: #b06040; min-height: 1.5em; font-weight: 500; }
+.lives {
+    display: flex;
+    gap: 4px;
+    font-size: 20px;
+}
+.lives .lost { opacity: 0.2; }
+.keyboard {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-content: center;
+}
+.key {
+    width: 36px;
+    height: 40px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    background: #fff;
+    color: #2c2c2c;
+    transition: all 0.15s;
+    font-family: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.key:hover { border-color: #c06a3e; color: #c06a3e; }
+.key.used { background: #f0f0f0; color: #ccc; border-color: #eee; cursor: default; pointer-events: none; }
+.key.wrong { background: #fde7d8; color: #c06a3e; border-color: #f0c0b0; }
+.key.correct { background: #e0f0e0; color: #3a8a5a; border-color: #b0d8b0; }
+.controls { display: flex; gap: 10px; }
+.btn {
+    padding: 10px 28px;
+    border-radius: 12px;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+    background: #c06a3e;
+    color: #fff;
+}
+.btn:hover { background: #a85932; transform: translateY(-1px); }
+.btn-secondary {
+    background: transparent;
+    border: 1px solid #ddd;
+    color: #555;
+}
+.btn-secondary:hover { border-color: #c06a3e; color: #c06a3e; }
+.result-overlay {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 20px;
+    text-align: center;
+}
+.result-overlay.show { display: flex; }
+.result-overlay .emoji { font-size: 48px; }
+.result-overlay .msg { font-size: 18px; font-weight: 600; }
+.result-overlay .word { font-size: 24px; font-weight: 700; color: #c06a3e; letter-spacing: 4px; font-family: 'Courier New', monospace; }
+.score-row {
+    display: flex;
+    gap: 24px;
+    font-size: 13px;
+    color: #888;
+}
+.score-row span { display: flex; align-items: center; gap: 4px; }
+.score-row strong { color: #2c2c2c; }
+footer { text-align: center; font-size: 12px; color: #ccc; }
+footer a { color: #c06a3e; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <h1>Adam <span>Asmaca</span></h1>
+        <canvas id="canvas" width="400" height="400"></canvas>
+
+        <div class="word-display" id="wordDisplay"></div>
+        <div class="hint" id="hintDisplay"></div>
+        <div class="wrong-letters" id="wrongLetters"></div>
+        <div class="lives" id="livesDisplay"></div>
+
+        <div class="keyboard" id="keyboard"></div>
+
+        <div class="result-overlay" id="resultOverlay">
+            <div class="emoji" id="resultEmoji"></div>
+            <div class="msg" id="resultMsg"></div>
+            <div class="word" id="resultWord"></div>
+        </div>
+
+        <div class="controls">
+            <button class="btn" id="newGameBtn">🎲 Yeni Oyun</button>
+        </div>
+
+        <div class="score-row">
+            <span>🏆 Kazanma <strong id="winCount">0</strong></span>
+            <span>💀 Kaybetme <strong id="loseCount">0</strong></span>
+        </div>
+    </div>
+    <footer><a href="https://arcahmet.github.io">arcahmet</a></footer>
+</div>
+
+<script>
+const WORDS = [
+    { word: 'istanbul', hint: 'şehir' },
+    { word: 'kelebek', hint: 'hayvan' },
+    { word: 'pazartesi', hint: 'gün' },
+    { word: 'çikolata', hint: 'yiyecek' },
+    { word: 'kitap', hint: 'nesne' },
+    { word: 'bilgisayar', hint: 'nesne' },
+    { word: 'penguen', hint: 'hayvan' },
+    { word: 'ayçiçeği', hint: 'bitki' },
+    { word: 'sandalye', hint: 'nesne' },
+    { word: 'telefon', hint: 'nesne' },
+    { word: 'portakal', hint: 'meyve' },
+    { word: 'bisiklet', hint: 'nesne' },
+    { word: 'denizanası', hint: 'hayvan' },
+    { word: 'kütüphane', hint: 'yer' },
+    { word: 'yıldırım', hint: 'doğa' },
+    { word: 'merdiven', hint: 'nesne' },
+    { word: 'kaplumbağa', hint: 'hayvan' },
+    { word: 'anahtar', hint: 'nesne' },
+    { word: 'gökyüzü', hint: 'doğa' },
+    { word: 'makarna', hint: 'yiyecek' },
+];
+
+const TURKISH_LETTERS = 'ABCÇDEFGĞHIİJKLMNOÖPRSŞTUÜVYZ'.split('');
+const MAX_WRONG = 6;
+
+let current = null;
+let guessed = [];
+let wrongCount = 0;
+let wins = parseInt(localStorage.getItem('hangmanWins') || '0');
+let losses = parseInt(localStorage.getItem('hangmanLosses') || '0');
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+function drawHangman(stage) {
+    ctx.clearRect(0, 0, 400, 400);
+    ctx.strokeStyle = '#2c2c2c';
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+
+    // Gallows
+    ctx.beginPath();
+    ctx.moveTo(40, 380); ctx.lineTo(200, 380); // base
+    ctx.moveTo(100, 380); ctx.lineTo(100, 40);  // pole
+    ctx.moveTo(100, 40); ctx.lineTo(260, 40);   // top
+    ctx.moveTo(260, 40); ctx.lineTo(260, 80);   // rope
+    ctx.stroke();
+
+    if (stage <= 0) return;
+
+    // Head
+    ctx.beginPath();
+    ctx.arc(260, 110, 28, 0, Math.PI * 2);
+    ctx.stroke();
+    if (stage <= 1) return;
+
+    // Body
+    ctx.beginPath();
+    ctx.moveTo(260, 138);
+    ctx.lineTo(260, 240);
+    ctx.stroke();
+    if (stage <= 2) return;
+
+    // Left arm
+    ctx.beginPath();
+    ctx.moveTo(260, 160);
+    ctx.lineTo(210, 200);
+    ctx.stroke();
+    if (stage <= 3) return;
+
+    // Right arm
+    ctx.beginPath();
+    ctx.moveTo(260, 160);
+    ctx.lineTo(310, 200);
+    ctx.stroke();
+    if (stage <= 4) return;
+
+    // Left leg
+    ctx.beginPath();
+    ctx.moveTo(260, 240);
+    ctx.lineTo(210, 310);
+    ctx.stroke();
+    if (stage <= 5) return;
+
+    // Right leg
+    ctx.beginPath();
+    ctx.moveTo(260, 240);
+    ctx.lineTo(310, 310);
+    ctx.stroke();
+}
+
+function newGame() {
+    current = WORDS[Math.floor(Math.random() * WORDS.length)];
+    guessed = [];
+    wrongCount = 0;
+    document.getElementById('resultOverlay').classList.remove('show');
+    document.getElementById('wordDisplay').style.display = '';
+    drawHangman(0);
+    renderKeyboard();
+    updateDisplay();
+}
+
+function updateDisplay() {
+    const display = current.word.split('').map(c => guessed.includes(c) ? c : '_').join(' ');
+    document.getElementById('wordDisplay').textContent = display;
+    document.getElementById('hintDisplay').textContent = `💡 ${current.hint}`;
+
+    const wrong = guessed.filter(c => !current.word.includes(c));
+    document.getElementById('wrongLetters').textContent = wrong.length ? `❌ ${wrong.join(', ')}` : '';
+
+    const hearts = '❤️'.repeat(MAX_WRONG - wrongCount) + '🖤'.repeat(wrongCount);
+    document.getElementById('livesDisplay').innerHTML = hearts;
+
+    if (!display.includes('_')) {
+        endGame(true);
+    }
+}
+
+function guess(letter) {
+    if (!current || guessed.includes(letter)) return;
+    guessed.push(letter);
+
+    if (!current.word.includes(letter)) {
+        wrongCount++;
+        drawHangman(wrongCount);
+        if (wrongCount >= MAX_WRONG) {
+            endGame(false);
+        }
+    }
+    renderKeyboard();
+    updateDisplay();
+}
+
+function endGame(won) {
+    document.getElementById('wordDisplay').style.display = 'none';
+    document.getElementById('resultOverlay').classList.add('show');
+    document.getElementById('resultEmoji').textContent = won ? '🎉' : '💀';
+    document.getElementById('resultMsg').textContent = won ? 'Tebrikler, bildin!' : 'Bilemedin!';
+    document.getElementById('resultWord').textContent = current.word.toUpperCase();
+
+    if (won) { wins++; localStorage.setItem('hangmanWins', wins); }
+    else { losses++; localStorage.setItem('hangmanLosses', losses); }
+    document.getElementById('winCount').textContent = wins;
+    document.getElementById('loseCount').textContent = losses;
+}
+
+function renderKeyboard() {
+    const el = document.getElementById('keyboard');
+    el.innerHTML = '';
+    TURKISH_LETTERS.forEach(c => {
+        const btn = document.createElement('button');
+        btn.className = 'key';
+        btn.textContent = c;
+        if (guessed.includes(c)) {
+            btn.classList.add('used');
+            btn.classList.add(current.word.includes(c) ? 'correct' : 'wrong');
+        }
+        btn.addEventListener('click', () => guess(c));
+        el.appendChild(btn);
+    });
+}
+
+document.getElementById('newGameBtn').addEventListener('click', newGame);
+
+document.addEventListener('keydown', (e) => {
+    const c = e.key.toUpperCase();
+    if (c === 'ENTER') { newGame(); return; }
+    if (TURKISH_LETTERS.includes(c) && !guessed.includes(c) && current) {
+        guess(c);
+    }
+});
+
+document.getElementById('winCount').textContent = wins;
+document.getElementById('loseCount').textContent = losses;
+newGame();
+</script>
+</body>
+</html>
