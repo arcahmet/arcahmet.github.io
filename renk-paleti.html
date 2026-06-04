@@ -171,9 +171,50 @@ h1 span { color: #c8f35a; }
 }
 .history-dot:hover { transform: scale(1.2); border-color: #c8f35a; }
 .label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; text-align: center; }
+
+/* Back to Home Button */
+.back-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+    text-decoration: none;
+    color: #888;
+    background: #1c1c1c;
+    padding: 10px 15px;
+    border-radius: 30px;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid #2a2a2a;
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+.back-btn:hover {
+    border-color: #c8f35a;
+    color: #c8f35a;
+    transform: translateX(4px);
+}
+@media (max-width: 768px) {
+    .back-btn {
+        top: 10px;
+        left: 10px;
+        padding: 8px 12px;
+        font-size: 11px;
+    }
+}
 </style>
 </head>
 <body>
+
+<a href="index.html" class="back-btn">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+    Ana Sayfa
+</a>
+
 <div class="container">
     <h1>Renk <span>Paleti</span></h1>
     <p class="subtitle">Bir renk seç, paletini oluştur</p>
