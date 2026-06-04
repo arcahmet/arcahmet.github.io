@@ -155,9 +155,47 @@ button:hover { background: #c73652; }
 :root.light .cell.highlighted { background: rgba(78, 204, 163, 0.3); }
 :root.light .cell.same-number { background: rgba(233, 69, 96, 0.25); }
 :root.light .cell.same-number.highlighted { background: rgba(233, 69, 96, 0.4); }
+
+/* Back to Home Button */
+.back-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+    text-decoration: none;
+    color: var(--text);
+    background: var(--bg-cell);
+    padding: 10px 15px;
+    border-radius: 30px;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 12px;
+    border: 1px solid var(--border);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+}
+.back-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateX(4px);
+}
+@media (max-width: 768px) {
+    .back-btn {
+        top: 10px;
+        left: 10px;
+        padding: 8px 12px;
+        font-size: 11px;
+    }
+}
     </style>
 </head>
 <body>
+    <a href="index.html" class="back-btn">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+        Ana Sayfa
+    </a>
     <div class="container">
         <h1>🧩 Sudoku</h1>
         <button id="themeBtn">☀️ Light Mode</button>

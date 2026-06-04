@@ -372,9 +372,50 @@
   .review-item .ans { font-family: 'JetBrains Mono', monospace; font-size: 12px; }
 
   .hidden { display: none !important; }
+
+  /* Back to Home Button */
+  .back-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 1000;
+    text-decoration: none;
+    color: var(--muted);
+    background: var(--paper);
+    padding: 10px 15px;
+    border-radius: 30px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    border: 1px solid var(--line);
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+  }
+  .back-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    transform: translateX(4px);
+  }
+  @media (max-width: 768px) {
+    .back-btn {
+        top: 10px;
+        left: 10px;
+        padding: 8px 12px;
+        font-size: 10px;
+    }
+  }
 </style>
 </head>
 <body>
+
+<a href="index.html" class="back-btn">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+  Ana Sayfa
+</a>
+
 <div class="wrap">
   <header class="brand">
     <h1>Zeka Testi</h1>
